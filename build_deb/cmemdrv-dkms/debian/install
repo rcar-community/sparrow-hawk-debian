@@ -1,0 +1,6 @@
+GPL-COPYING ./usr/src/PKG-VERSION
+MIT-COPYING ./usr/src/PKG-VERSION
+Makefile ./usr/src/PKG-VERSION
+*.c ./usr/src/PKG-VERSION
+*.h ./usr/src/PKG-VERSION
+dkms.conf ./usr/src/PKG-VERSION

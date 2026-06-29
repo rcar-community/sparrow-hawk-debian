@@ -1,0 +1,14 @@
+Source: qos-lib
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13), gcc-aarch64-linux-gnu
+Standards-Version: 4.6.2
+Homepage: https://github.com/renesas-rcar/qos_lib
+
+Package: qos-lib
+Architecture: all
+Depends: ${misc:Depends},
+Description: qos-lib for Sparrow Hawk

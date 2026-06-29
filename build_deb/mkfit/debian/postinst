@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ] || [ "$1" = "triggered" ]; then
+    /etc/kernel/postinst.d/zz-make-fitimage
+fi
+
+exit 0

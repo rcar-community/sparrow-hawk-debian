@@ -1,0 +1,5 @@
+fit-image.its.template usr/lib/sparrow-hawk/
+boot.cmd usr/lib/sparrow-hawk/
+init usr/lib/sparrow-hawk/
+zz-make-fitimage ./etc/kernel/postinst.d/
+

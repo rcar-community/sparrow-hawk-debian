@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+MODULE_NAME=qos-dkms
+MODULE_VERSION=1.0.0
+if [ "$1" = "configure" ]; then
+    dkms remove -m ${MODULE_NAME} -v ${MODULE_VERSION}
+fi
+
+
+exit 0

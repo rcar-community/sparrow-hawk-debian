@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+
+# Prevent passing build option
+export DEB_BUILD_MAINT_OPTIONS = hardening=-all optimize=-lto
+
+DEB_VERSION_UPSTREAM := $(shell dpkg-parsechangelog -SVersion | cut -d- -f1)
+CORENUM := $(shell nproc)
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	unset CFLAGS
+	unset CPPFLAGS
+	unset LDFLAGS
+	unset AS
+	unset LD
+	$(MAKE) -j$(CORENUM) \
+		PLAT=rcar_gen4 \
+		DEBUG=0 \
+		bl31 rcar_srecord SPD=none MBEDTLS_COMMON_MK=1 \
+		LSI=V4H CTX_INCLUDE_AARCH32_REGS=0 MBEDTLS_COMMON_MK=1 PTP_NONSECURE_ACCESS=1 LOG_LEVEL=20 DEBUG=0 ENABLE_ASSERTIONS=0 E=0
+
+override_dh_install:
+	dh_install
+	mv debian/sparrow-hawk-arm-trusted-firmware/usr/lib/sparrow-hawk/bl31.bin \
+		debian/sparrow-hawk-arm-trusted-firmware/usr/lib/sparrow-hawk/bl31-$(DEB_VERSION_UPSTREAM).bin
+	ln -sf ./bl31-$(DEB_VERSION_UPSTREAM).bin debian/sparrow-hawk-arm-trusted-firmware/usr/lib/sparrow-hawk/bl31.bin

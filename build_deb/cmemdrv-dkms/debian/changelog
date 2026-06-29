@@ -1,0 +1,5 @@
+cmemdrv-dkms (1.0.0-1) UNRELEASED; urgency=medium
+
+  * Initial release for Sparrow Hawk
+
+ -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Wed, 04 Mar 2026 19:13:57 +0900

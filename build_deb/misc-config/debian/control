@@ -1,0 +1,15 @@
+Source: sparrow-hawk-misc-config
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13), gcc-aarch64-linux-gnu
+Standards-Version: 4.6.2
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+
+Package: sparrow-hawk-misc-config
+Architecture: all
+Depends: ${misc:Depends},
+Description: udev rules
+

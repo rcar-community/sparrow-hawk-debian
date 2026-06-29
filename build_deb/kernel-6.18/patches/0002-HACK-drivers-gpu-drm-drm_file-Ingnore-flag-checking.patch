@@ -1,0 +1,33 @@
+From af97342c9abfd29377aabafb006ad3034a082da2 Mon Sep 17 00:00:00 2001
+From: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Date: Fri, 10 Apr 2026 11:54:47 +0900
+Subject: [PATCH] HACK: drivers: gpu: drm: drm_file: Ingnore flag checking
+
+Upstream-Status: Inappropriate [no upstream]
+
+[Yuya: Convert to git format patch]
+
+Signed-off-by: Anh Nguyen <anh.nguyen.pv@renesas.com>
+Signed-off-by: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+---
+ drivers/gpu/drm/drm_file.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_file.c b/drivers/gpu/drm/drm_file.c
+index c8c715531995..e187a27047f4 100644
+--- a/drivers/gpu/drm/drm_file.c
++++ b/drivers/gpu/drm/drm_file.c
+@@ -329,8 +329,8 @@ int drm_open_helper(struct file *filp, struct drm_minor *minor)
+ 	if (dev->switch_power_state != DRM_SWITCH_POWER_ON &&
+ 	    dev->switch_power_state != DRM_SWITCH_POWER_DYNAMIC_OFF)
+ 		return -EINVAL;
+-	if (WARN_ON_ONCE(!(filp->f_op->fop_flags & FOP_UNSIGNED_OFFSET)))
+-		return -EINVAL;
++	/*if (WARN_ON_ONCE(!(filp->f_op->fop_flags & FOP_UNSIGNED_OFFSET)))
++		return -EINVAL;*/
+ 
+ 	drm_dbg_core(dev, "comm=\"%s\", pid=%d, minor=%d\n",
+ 		     current->comm, task_pid_nr(current), minor->index);
+-- 
+2.34.1
+

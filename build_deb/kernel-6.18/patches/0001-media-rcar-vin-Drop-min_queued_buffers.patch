@@ -1,0 +1,39 @@
+From a779080b93a6e82093b5d66442ad7890755f65dc Mon Sep 17 00:00:00 2001
+From: Jacopo Mondi <jacopo.mondi+renesas@ideasonboard.com>
+Date: Mon, 4 May 2026 14:43:14 +0200
+Subject: [PATCH] media: rcar-vin: Drop min_queued_buffers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The R-Car VIN driver already uses a scratch buffer to sustain capture
+operations in absence of a frame buffer provided by userspace.
+
+There is no reason to require 4 buffers queued at all times for the
+driver to operate. Drop min_queued_buffers from the VIN driver to allow
+single-frame capture operations.
+
+Signed-off-by: Jacopo Mondi <jacopo.mondi+renesas@ideasonboard.com>
+Reviewed-by: Jai Luthra <jai.luthra+renesas@ideasonboard.com>
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Tested-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/renesas/rcar-vin/rcar-dma.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/platform/renesas/rcar-vin/rcar-dma.c b/drivers/media/platform/renesas/rcar-vin/rcar-dma.c
+index f9af9177e02f..73cda0e2d45a 100644
+--- a/drivers/media/platform/renesas/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/renesas/rcar-vin/rcar-dma.c
+@@ -1494,7 +1494,6 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
+ 	q->ops = &rvin_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+-	q->min_queued_buffers = 4;
+ 	q->dev = vin->dev;
+ 
+ 	ret = vb2_queue_init(q);
+-- 
+2.34.1
+

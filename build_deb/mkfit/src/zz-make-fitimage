@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# kernel postinst path some information
+# ex.) 6.18.20-arm64-renesas
+KERNEL_VERSION=$1
+# Maybe /boot
+KERNEL_IMAGE_PATH=$2
+
+# Get kernel version if this script doens't call from kernel postinst
+if [[ -z $KERNEL_VERSION ]];then
+    KERNEL_VERSION=$(ls /boot/vmlinuz* | cut -d'-' -f2-4)
+fi
+BUSYBOX_BIN_PATH=$(which busybox)
+
+# Generate initramfs
+INITRAMFS_DIR=$(mktemp -d)
+mkdir -p $INITRAMFS_DIR/{bin,sbin,etc,lib,usr,var,proc,sys,mnt}
+cp -a ${BUSYBOX_BIN_PATH} -t $INITRAMFS_DIR/bin/
+pushd $INITRAMFS_DIR/bin/
+./busybox --install ./
+popd
+mkdir -p $INITRAMFS_DIR/lib/modules/
+cp -a /lib/modules/${KERNEL_VERSION} -t $INITRAMFS_DIR/lib/modules/
+cp -a /usr/lib/sparrow-hawk/init -t $INITRAMFS_DIR/
+mkdir -p $INITRAMFS_DIR/lib/firmware
+cp -a /usr/lib/firmware/rcar_gen4_pcie.bin -t $INITRAMFS_DIR/lib/firmware
+cp -a /usr/lib/firmware/LICENCE.r8a779g_pcie_phy -t $INITRAMFS_DIR/lib/firmware
+
+# tree $INITRAMFS_DIR/
+
+pushd $INITRAMFS_DIR
+find . | cpio -H newc -o | gzip > /usr/lib/sparrow-hawk/uInitramfs.cpio.gz
+popd
+
+# Generate fitImage
+cd /usr/lib/sparrow-hawk/
+cp -f /boot/fitImage{,.old} || true
+sed -e "s/KERNEL_VERSION/${KERNEL_VERSION}/" fit-image.its.template > fit-image.its
+mkimage -f fit-image.its /boot/fitImage > /dev/null
+

@@ -1,0 +1,14 @@
+Source: sparrow-hawk-pcie-fw
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.6.2
+Homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+
+Package: sparrow-hawk-pcie-fw
+Architecture: all
+Depends: ${misc:Depends},
+Description: PCIe Controller firmware for Sparrow Hawk

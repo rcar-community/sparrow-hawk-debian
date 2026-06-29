@@ -1,0 +1,50 @@
+From: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Date: Wed, 28 May 2026 00:00:00 +0900
+Subject: [PATCH] Fix Makefile install targets
+
+- Add -I. to library build to find local headers
+- Use ln -sf instead of ln -s to avoid rebuild failures
+- Add .so file installation to module install target
+- Add install target to qos_if-tp-user Makefile
+
+Signed-off-by: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+---
+ qos_if-module/files/qos_if/if/Makefile | 7 ++++---
+ qos_if-tp-user/files/qos_if/Makefile   | 3 +++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/qos_if-module/files/qos_if/if/Makefile b/qos_if-module/files/qos_if/if/Makefile
+index 1111111..2222222 100644
+--- a/qos_if-module/files/qos_if/if/Makefile
++++ b/qos_if-module/files/qos_if/if/Makefile
+@@ -1,13 +1,16 @@
+ QOS_MODULE =
+
+ all:
+-	${CC} -fPIC -c qos_lib.c -I$(INCSHARED)/$(QOS_MODULE) -Wall -O2
++	${CC} -fPIC -c qos_lib.c -I. -I$(INCSHARED)/$(QOS_MODULE) -Wall -O2
+ 	${CC} -shared -Wl,-soname=libqos.so.1 -o libqos.so.1.0.0 qos_lib.o
+-	ln -s ./libqos.so.1.0.0 libqos.so.1
+-	ln -s ./libqos.so.1 libqos.so
++	ln -sf ./libqos.so.1.0.0 libqos.so.1
++	ln -sf ./libqos.so.1 libqos.so
+
+ clean:
+ 	rm -f qos_lib.o libqos.so libqos.so.1 libqos.so.1.0.0
+
+ install:
+ 	$(CP) ../include/qos_public.h $(INCSHARED)/$(QOS_MODULE)
++	$(CP) libqos.so.1.0.0 $(LIBSHARED)/
++	ln -sf libqos.so.1.0.0 $(LIBSHARED)/libqos.so.1
++	ln -sf libqos.so.1 $(LIBSHARED)/libqos.so
+diff --git a/qos_if-tp-user/files/qos_if/Makefile b/qos_if-tp-user/files/qos_if/Makefile
+index 3333333..4444444 100644
+--- a/qos_if-tp-user/files/qos_if/Makefile
++++ b/qos_if-tp-user/files/qos_if/Makefile
+@@ -10,3 +10,6 @@ $(TARGET_NAME): qos_tp.c
+ clean:
+ 	rm -f *.o
+ 	rm -f $(TARGET_NAME)
++
++install:
++	$(CP) $(TARGET_NAME) $(BINSHARED)/

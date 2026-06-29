@@ -1,0 +1,10 @@
+Package: __PACKAGE_NAME__
+Version: __PACKAGE_VERSION__
+Section: misc
+Priority: optional
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Depends: __ORIGINAL_PACKAGE_NAME__
+Provides: sparrow-hawk-kernel
+Description: Renesas kernel meta package for arm64
+

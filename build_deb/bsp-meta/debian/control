@@ -1,0 +1,25 @@
+Source: sparrow-hawk-bsp
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13), gcc-aarch64-linux-gnu
+Standards-Version: 4.6.2
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+
+Package: sparrow-hawk-bsp
+Architecture: all
+Depends: ${misc:Depends},
+    linux-image-6.18-arm64-renesas,
+    sparrow-hawk-arm-trusted-firmware,
+    sparrow-hawk-kernel-module-cmemdrv,
+    sparrow-hawk-libcamera,
+    sparrow-hawk-misc-config,
+    sparrow-hawk-mkfit,
+    sparrow-hawk-pcie-fw,
+    sparrow-hawk-udev,
+    sparrow-hawk-utils,
+    sparrow-hawk-u-boot,
+Description: Meta package for Sparrow Hawk
+

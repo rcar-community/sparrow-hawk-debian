@@ -1,0 +1,5 @@
+sparrow-hawk-arm-trusted-firmware (2.14.0-1) UNRELEASED; urgency=medium
+
+  * Initial release for Sparrow Hawk
+
+ -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Sat, 14 Feb 2026 18:44:56 +0900

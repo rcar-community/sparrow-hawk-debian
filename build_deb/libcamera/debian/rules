@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+# Prevent passing build option
+export DEB_BUILD_MAINT_OPTIONS = hardening=-all optimize=-lto
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+
+DEB_VERSION_UPSTREAM := $(shell dpkg-parsechangelog -SVersion | cut -d- -f1)
+CORENUM := $(shell nproc)
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	meson setup --prefix=/usr \
+		-Dpipelines=rcar-gen4,rkisp1 \
+		-Dipas=rkisp1 \
+		-Dcam=enabled \
+		-Dpycamera=enabled \
+		-Dtest=false \
+		-Ddocumentation=disabled \
+		-Dgstreamer=enabled \
+		build
+
+override_dh_auto_build:
+	DESTDIR=./install ninja -C build install
+

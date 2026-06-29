@@ -1,0 +1,6 @@
+GPL-COPYING ./usr/src/qos-dkms-1.0.0
+MIT-COPYING ./usr/src/qos-dkms-1.0.0
+qos-module/files/qos/drv/Makefile ./usr/src/qos-dkms-1.0.0
+qos-module/files/qos/drv/*.c ./usr/src/qos-dkms-1.0.0
+qos-module/files/qos/drv/*.h ./usr/src/qos-dkms-1.0.0
+dkms.conf ./usr/src/qos-dkms-1.0.0

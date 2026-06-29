@@ -1,0 +1,14 @@
+Source: sparrow-hawk-arm-trusted-firmware
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13), gcc-aarch64-linux-gnu
+Standards-Version: 4.6.2
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+
+Package: sparrow-hawk-arm-trusted-firmware
+Architecture: all
+Depends: ${misc:Depends},
+Description: ARM Trusted Firmware (TF-A) BL31 for Sparrow Hawk

@@ -1,0 +1,154 @@
+From 91ac4786dac2d028662f3b0f49b3704c55c8eb19 Mon Sep 17 00:00:00 2001
+From: Marek Vasut <marek.vasut+renesas@mailbox.org>
+Date: Sat, 25 Apr 2026 22:17:57 +0200
+Subject: [PATCH] PCI: rcar-gen4: Limit Max_Read_Request_Size and
+ Max_Payload_Size to 256 Bytes
+
+R-Car Gen4 PCIe controller has a hardware limitation of 256 Bytes
+Max_Payload_Size (MPS). PCIe specification indicates that the MPS
+must not exceed minimum MPS of any element along the packet path.
+Force limit Max_Payload_Size to at most 256 Bytes for each device
+connected to this PCIe controller.
+
+R-Car Gen4 Reference Manual, chapter 104.4.8 Usage notes for
+MRRS (Max Read Request Size) states:
+  Please set "Max Read Request Size" to 128 bytes or 256 bytes.
+  If "Max Read Request Size" is set to anything other than the
+  above, the transferred data will not match the expected value.
+This limitation also seems the apply to devices issuing MRd TLP.
+This limitation can be triggered by using non-HMB NVMe SSD with
+Max_Read_Request_Size 512 Bytes, for example Crucial P5 Plus.
+Any write into the SSD (MRd TLP issued by the SSD) longer than
+256 Bytes wraps around at 256 Byte boundary, and the same data
+are written into the SSD starting at offset 0 and at 256 Bytes.
+Force limit Max_Read_Request_Size to at most 256 Bytes for each
+device connected to this PCIe controller to avoid this behavior.
+
+An non-HMB (Host Memory Buffer) NVMe SSD can be identified using
+the following command. Affected SSD reports 'hmpre' field as 0:
+"
+$ nvme id-ctrl /dev/nvme0 | grep hmpre
+hmpre     : 0
+"
+
+The symptom is a read from the SSD which wraps around at 256 Byte
+boundary. The test for this symptom can be implemented by writing
+512 Byte of random data into the SSD and reading the data back. If
+the read back data repeat after 256 Bytes, the device is affected.
+"
+$ dd if=/dev/urandom of=/tmp/data.bin bs=256 count=2 \
+  dd if=/tmp/data.bin of=/dev/nvme0n1 bs=256 count=2 \
+  dd if=/dev/nvme0n1 bs=256 count=2 of=/tmp/readback.bin
+"
+
+Expected data:
+"
+$ hexdump -vC /tmp/data.bin
+00000000  97 81 b7 3b 0e 38 2b 4d  a7 d3 e0 47 ff c2 4b ca
+00000010  c1 85 98 f0 4a ac 03 a0  3b ab f3 19 44 dd 06 8b
+...
+00000100  7a ce 3c b2 e1 d5 d9 11  88 63 10 59 76 3c dc 32 <-- random
+00000110  72 32 2a 7d a3 e1 aa 13  7c da 58 a1 7b 21 11 50 <-- data
+"
+
+Faulty readback, collected without this change in place:
+"
+$ hexdump -vC /tmp/readback.bin
+00000000  97 81 b7 3b 0e 38 2b 4d  a7 d3 e0 47 ff c2 4b ca <---.
+00000010  c1 85 98 f0 4a ac 03 a0  3b ab f3 19 44 dd 06 8b <-. |
+...                                                          | |
+00000100  97 81 b7 3b 0e 38 2b 4d  a7 d3 e0 47 ff c2 4b ca <-:-+- repeated
+00000110  c1 85 98 f0 4a ac 03 a0  3b ab f3 19 44 dd 06 8b <-+--- data
+     ^^^
+      |
+      '--- Repeat starts at offset 0x100 = 256 Bytes
+"
+
+Upstream-Status: Submitted [https://lore.kernel.org/linux-pci/20260519195219.189323-1-marek.vasut+renesas@mailbox.org/]
+Fixes: 0d0c551011df ("PCI: rcar-gen4: Add R-Car Gen4 PCIe controller support for host mode")
+Cc: stable@vger.kernel.org
+Signed-off-by: Marek Vasut <marek.vasut+renesas@mailbox.org>
+---
+NOTE: - Possible EP mode limit of 128 Bytes is currently pending
+        documentation team input
+V2: - Dispose of the reprogramming of MPS/MRRS altogether
+    - Dispose of the entire fixup quirk
+    - Replace both with bridge enable_device hook
+    - Limit MPS/MRRS along the entire packet path to follow
+      MRRS limitation requirement
+---
+ drivers/pci/controller/dwc/pcie-rcar-gen4.c | 51 +++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+
+diff --git a/drivers/pci/controller/dwc/pcie-rcar-gen4.c b/drivers/pci/controller/dwc/pcie-rcar-gen4.c
+index 80778917d2ddd..13179d072f89a 100644
+--- a/drivers/pci/controller/dwc/pcie-rcar-gen4.c
++++ b/drivers/pci/controller/dwc/pcie-rcar-gen4.c
+@@ -305,6 +305,54 @@ static struct rcar_gen4_pcie *rcar_gen4_pcie_alloc(struct platform_device *pdev)
+ 	return rcar;
+ }
+ 
++static int rcar_gen4_pcie_enable_device(struct pci_host_bridge *bridge,
++					struct pci_dev *dev)
++{
++	/*
++	 * R-Car Gen4 PCIe controller has a hardware limitation of 256 Bytes
++	 * Max_Payload_Size (MPS). PCIe specification indicates that the MPS
++	 * must not exceed minimum MPS of any element along the packet path.
++	 * Force limit Max_Payload_Size to at most 256 Bytes for each device
++	 * connected to this PCIe controller.
++	 *
++	 * For details, refer to chapter "104.1.1 Features" in either of:
++	 * R-Car S4 R19UH0161EJ0130 Rev.1.30 Jun. 16, 2025 or
++	 * R-Car V4H R19UH0186EJ0130 Rev.1.30 Apr. 21, 2025 or
++	 * R-Car V4M R19UH0217EJ0100 Rev.1.00 Dec. 12, 2025.
++	 */
++	if (pcie_get_mps(dev) > 256) {
++		pci_info(dev, "Limiting MPS to 256 bytes\n");
++		pcie_set_mps(dev, 256);
++	}
++
++	/*
++	 * R-Car Gen4 Reference Manual, chapter 104.4.8 Usage notes for
++	 * MRRS (Max Read Request Size) states:
++	 *   Please set "Max Read Request Size" to 128 bytes or 256 bytes.
++	 *   If "Max Read Request Size" is set to anything other than the
++	 *   above, the transferred data will not match the expected value.
++	 * This limitation also seems the apply to devices issuing MRd TLP.
++	 * This limitation can be triggered by using non-HMB NVMe SSD with
++	 * Max_Read_Request_Size 512 Bytes, for example Crucial P5 Plus.
++	 * Any write into the SSD (MRd TLP issued by the SSD) longer than
++	 * 256 Bytes wraps around at 256 Byte boundary, and the same data
++	 * are written into the SSD starting at offset 0 and at 256 Bytes.
++	 * Force limit Max_Read_Request_Size to at most 256 Bytes for each
++	 * device connected to this PCIe controller to avoid this behavior.
++	 *
++	 * For details, refer to aforementioned chapter in either of:
++	 * R-Car S4 R19UH0161EJ0130 Rev.1.30 Jun. 16, 2025 or
++	 * R-Car V4H R19UH0186EJ0130 Rev.1.30 Apr. 21, 2025 or
++	 * R-Car V4M R19UH0217EJ0100 Rev.1.00 Dec. 12, 2025,
++	 */
++	if (pcie_get_readrq(dev) > 256) {
++		pci_info(dev, "Limiting MRRS to 256 bytes\n");
++		pcie_set_readrq(dev, 256);
++	}
++
++	return 0;
++}
++
+ /* Host mode */
+ static int rcar_gen4_pcie_host_init(struct dw_pcie_rp *pp)
+ {
+@@ -313,6 +361,9 @@ static int rcar_gen4_pcie_host_init(struct dw_pcie_rp *pp)
+ 	int ret;
+ 	u32 val;
+ 
++	if (pp->bridge)
++		pp->bridge->enable_device = rcar_gen4_pcie_enable_device;
++
+ 	gpiod_set_value_cansleep(dw->pe_rst, 1);
+ 
+ 	ret = rcar_gen4_pcie_common_init(rcar);
+-- 
+2.53.0
+

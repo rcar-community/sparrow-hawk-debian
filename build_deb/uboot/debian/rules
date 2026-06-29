@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+# Prevent passing build option
+export DEB_BUILD_MAINT_OPTIONS = hardening=-all optimize=-lto
+
+DEB_VERSION_UPSTREAM := $(shell dpkg-parsechangelog -SVersion | cut -d- -f1)
+CORENUM := $(shell nproc)
+export ARCH=arm64
+export CROSS_COMPILE=aarch64-linux-gnu-
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	cat debian/patches/*.cfg >> configs/r8a779g3_sparrowhawk_defconfig
+	$(MAKE) -j$(CORENUM) r8a779g3_sparrowhawk_defconfig
+	cp -f debian/patches/sparrowhawk.env -t board/renesas/sparrowhawk/
+
+override_dh_auto_build:
+	$(MAKE) -j$(CORENUM)
+
+override_dh_auto_test:
+	:
+

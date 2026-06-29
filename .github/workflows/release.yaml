@@ -1,0 +1,271 @@
+name: Generate apt repository and build image
+run-name: Generate apt repository and build image
+on:
+  push:
+    branches:
+      - 'main'
+      - 'dev'
+      - 'next'
+  workflow_dispatch:
+
+# Prevent duplicated runner
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  Build:
+    name: Prepare Release apt repository and debian based os image
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup package
+        run: |
+          sudo apt update
+          sudo apt install -y reprepro gnupg2 gpg-agent pinentry-curses
+
+          # Clean up apt
+          sudo apt autoremove -y
+          sudo apt clean -y
+          sudo apt autoclean -y
+
+      - name: Setup github config
+        run: |
+          git config --global user.name "actions-user"
+          git config --global user.email "action@github.com"
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Check GPG
+        run: |
+          echo "test" | gpg --sign --output /dev/null
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build docker image (debian-12-arm64-builder)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./_dev/arm64/debian12
+          platforms: linux/arm64
+          load: true
+          tags: debian-12-arm64-builder:latest
+          cache-from: type=gha,scope=debian-12-arm64-builder
+          cache-to: type=gha,mode=max,scope=debian-12-arm64-builder
+
+      - name: Build docker image (debian-13-arm64-builder)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./_dev/arm64/debian13
+          platforms: linux/arm64
+          load: true
+          tags: debian-13-arm64-builder:latest
+          cache-from: type=gha,scope=debian-13-arm64-builder
+          cache-to: type=gha,mode=max,scope=debian-13-arm64-builder
+
+      - name: Build docker image (debian-host-builder)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./_dev/host
+          load: true
+          tags: debian-host-builder:latest
+          cache-from: type=gha,scope=debian-host-builder
+          cache-to: type=gha,mode=max,scope=debian-host-builder
+
+      - name: Build all deb package
+        run: |
+          cd ${GITHUB_WORKSPACE}/build_deb
+          ./build_all.sh
+
+      - name: Generate apt repo branch
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          APT_BRANCH="apt-repo"
+          if [[ "$BRANCH" != "main" ]]; then
+            APT_BRANCH=apt-repo-${BRANCH}
+          fi
+          cd ${GITHUB_WORKSPACE}
+          git fetch origin apt-repo-template
+          git worktree add ./apt-repo-template apt-repo-template
+          mkdir repo && cd repo
+          cp -r ../apt-repo-template/* -t ./
+          echo "$GPG_PUBLIC_KEY" > ./sparrow-hawk-repo.asc
+          cd ${BRANCH}
+          for deb in $(find ${GITHUB_WORKSPACE}/build_deb -name "*.deb"); do
+            ../helper_script.sh ${deb}
+          done
+          cp ../sparrow-hawk-repo.asc ./
+          git init
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git checkout -b ${APT_BRANCH}
+          git add .
+          git commit -m "Update APT repo"
+          git push --force origin ${APT_BRANCH}
+        env:
+          GPG_TTY: $(tty)
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Generate apt repo github pages
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          git fetch origin apt-repo      || true
+          git fetch origin apt-repo-dev  || true
+          git fetch origin apt-repo-next || true
+          mkdir gh-pages && cd gh-pages
+          git worktree add ./main   apt-repo      || true
+          git worktree add ./dev    apt-repo-dev  || true
+          git worktree add ./next   apt-repo-next || true
+          cp ./dev/sparrow-hawk-repo.asc . 2>/dev/null || \
+          cp ./main/sparrow-hawk-repo.asc . 2>/dev/null || \
+          cp ./next/sparrow-hawk-repo.asc . 2>/dev/null || true
+          rm -rf dev/.git main/.git next/.git
+
+          echo "${{ github.run_id }}" > ./build_id
+
+          git init
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git checkout -b gh-pages
+          git add .
+          git commit -m "Update APT repo"
+          git push --force origin gh-pages
+        env:
+          GPG_TTY: $(tty)
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Wait for GitHub Pages to deploy
+        run: |
+          URL="https://${{ github.repository_owner }}.github.io/sparrow-hawk-debian/build_id"
+          EXPECTED="${{ github.run_id }}"
+          TIMEOUT=300
+          ELAPSED=0
+          until curl -fsSL "${URL}" 2>/dev/null | grep -qF "${EXPECTED}"; do
+            if [ ${ELAPSED} -ge ${TIMEOUT} ]; then
+              echo "Timeout waiting for GitHub Pages"
+              exit 1
+            fi
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+          echo "GitHub Pages is ready"
+
+      - name: Build debian image
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          ./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13
+
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop gnome
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop xfce
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop kde
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop cinnamon
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop gnome-flashback
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop mate
+          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop lxqt
+
+      - name: Generate release message
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          OUTPUT="${{ github.workspace }}-release_msg.txt"
+          if [[ "$BRANCH" == "dev" ]]; then
+            echo '## Note: This is the latest development build.' > ${OUTPUT}
+          else
+            rm -rf ${OUTPUT}
+          fi
+          cat << 'EOS' >> ${OUTPUT}
+          ## Description
+
+          Debian based BSP image for Sparrow Hawk
+
+          ## Usage
+
+          ### How to login
+
+          The default user is "rcar" and password is same as username.
+
+          ### Source/License
+
+          Sparrow Hawk dedicated deb package: Please check this reposotiry.
+          others: Please check deb-src by using apt. Debian default packages are used in this image.
+
+          EOS
+
+      - name: Prepare release tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          cd $GITHUB_WORKSPACE
+          BRANCH="${{ github.ref_name }}"
+          if [[ "$BRANCH" == "main" ]]; then
+            # ex.) vYYYY-MM-DD
+            RELEASE_VER=$(cat RELEASE_VERSION)
+            if [[ -z "$RELEASE_VER" ]]; then
+              echo "TAG_NAME=v$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+            else
+              echo "TAG_NAME=${.RELEASE_VER}" >> $GITHUB_ENV
+            fi
+          elif [[ "$BRANCH" == "dev" ]]; then
+            echo "TAG_NAME=dev-latest" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == "next" ]]; then
+            echo "TAG_NAME=next-release" >> $GITHUB_ENV
+          fi
+
+      - name: Setup release configuration
+        id: prerelease
+        shell: bash
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [[ "${BRANCH}" == "dev" ]]; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+            echo "RELEASE_TITLE=Development Latest" >> $GITHUB_ENV
+          elif [[ "${BRANCH}" == "next" ]]; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+            echo "RELEASE_TITLE=Next release candidate" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+            echo "RELEASE_TITLE=Release ${{ env.TAG_NAME }}" >> $GITHUB_ENV
+          fi
+
+      - name: Delete release tag if it exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          # Release
+          if gh release view "${{ env.TAG_NAME }}" --repo ${{ github.repository }} >/dev/null 2>&1; then
+            echo "Deleting old release: ${{ env.TAG_NAME }}"
+            gh release delete "${{ env.TAG_NAME }}" --repo ${{ github.repository }} --yes
+          fi
+          # Tag
+          if git ls-remote --tags origin | grep "refs/tags/${{ env.TAG_NAME }}"; then
+            echo "Deleting old tag: ${{ env.TAG_NAME }}"
+            git push origin :refs/tags/${{ env.TAG_NAME }}
+          fi
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          target_commitish: ${{ github.ref_name }}
+          name: ${{ env.RELEASE_TITLE }}
+          draft: false
+          prerelease: ${{ env.PRERELEASE }}
+          files: |
+            ./build_image/build_debian_image/*.img.gz
+          body_path: ${{ github.workspace }}-release_msg.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+export CP = cp
+BUILDROOT := $(CURDIR)/build/install
+
+export INCSHARED=$(BUILDROOT)/usr/include
+export LIBSHARED=$(BUILDROOT)/usr/lib
+export BINSHARED=$(BUILDROOT)/usr/bin
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	mkdir -p $(INCSHARED) $(LIBSHARED) $(BINSHARED)
+	$(MAKE) -j4 -C qos_if-module/files/qos_if/if
+	$(MAKE) -j4 -C qos_if-module/files/qos_if/if install
+	$(MAKE) -j4 -C qos_if-tp-user/files/qos_if
+	$(MAKE) -j4 -C qos_if-tp-user/files/qos_if install
