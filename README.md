@@ -1,2 +1,4 @@
-# sparrow-hawk-debian
-Debian based BSP development
+# apt-repo
+
+Apt repository for Sparrow Hawk
+
