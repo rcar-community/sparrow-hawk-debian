@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: bookworm
+Date: Tue, 30 Jun 2026 09:14:36 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ 97dd7310b963298272b8a0dad4400e0e 10431 main/binary-arm64/Packages
+ eadc620ba2f4f94e6168baad1532be53 3120 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ 522453554f9f4efb4c2c63e545441e1e 8306 main/binary-amd64/Packages
+ f8ec40791cc771b43a4031c83f405445 2475 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ d39588a441a84cec9a77ec40bffe9cffe11e368f 10431 main/binary-arm64/Packages
+ 9f0cab4b9ba51868ff444bd22999ddb9005e640b 3120 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ f793e4982f66f5cb775e47840748eb9075d3f3eb 8306 main/binary-amd64/Packages
+ e054f06da2cac17bd400fa47b749e2a843f8b52a 2475 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ e2642b9200129d4512da4c7614909c0a83d00801e1914a031f87b28545b00506 10431 main/binary-arm64/Packages
+ 16eb61d361519ecc940189bc8f699d35ce7a2c98aa9bc611106f1749795c7431 3120 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ cf6062591681e95bc932963800686643d6ea223211b5351dbd58bfd1e885a09a 8306 main/binary-amd64/Packages
+ d6d6a5a79d9a2eb350fa7d7a461bcecd0c38576a98673b803a16218c294d2525 2475 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmpDiPwACgkQv0NaWF1O
+GQQXLQwAqHbxQhZKPYafm5jbV8ZgguqaSvfYLWZ89BaSGKnnzGicRvkAk8Zl0diA
+Ie/S1QZPMkUvmgbPENRq3H5SCVgCrqINXV2R4JA1qykgesdRTNaMK8XGtldLPHgm
+sHNPX+cZhlfaDsRZ3JJIaPed/bjADEPFvBDuAtWQg+Spxe2FvwPZZRDpkd9r7CDN
+e0KPqAxMsbWEtCvun0V2+xPGpukHApWX1lj15gKXTE+ygU6t/cDq6HwDPWyu+aTB
+Dy/z278n3npp8Q/LdUYC3O8PZOUJuZj/N2Es7KKGn6/w5fg0uUfFl6WHSdb5np1I
+rMsW2RS+N42z6PPKZ8QCpzQJhH/JMKdGhRHRSbDeM4tx/IwtyX+sQizv485u7dht
++HwVno0vgW2inDs5FKw6p3qBK1V3GbBS8loQfLHzd1tXzqqYKZgcNlPByqXjrUWG
+PyVoc/aE+oBASII9tMqASM9eYLpfTVb8+wa1MjktGyixGr/a/saS99K8A+WS+F3a
+FyROpGSK
+=lUjs
+-----END PGP SIGNATURE-----
