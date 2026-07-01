@@ -1,2 +1,3 @@
 expand-rootfs.sh ./usr/bin/
+toggle_gpio_GP2_12.py ./usr/bin/
 
