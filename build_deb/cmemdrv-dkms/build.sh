@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR=$(cd `dirname $` && pwd)
-COMMIT=e67f473cddb089f71abead8bf18f618d42f515da
+COMMIT=cbff149453ab1bb3597560cbfa3cec005bae0735
 PKG=cmemdrv-dkms
 VERSION=$(grep $PKG debian/changelog | sed -e 's/.*(//' -e 's/-.*).*//')
 echo  $VERSION
