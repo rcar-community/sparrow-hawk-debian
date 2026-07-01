@@ -16,3 +16,4 @@ linux
 
 out
 rootfs.done
+__pycache__
