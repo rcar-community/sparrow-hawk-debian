@@ -11,7 +11,7 @@ Homepage: https://git.libcamera.org/libcamera/libcamera.git
 Package: sparrow-hawk-libcamera
 Architecture: all
 Depends: ${misc:Depends},
-    libdw1, libunwind8, libevent-dev,
+    libdw1, libunwind8, libevent-dev, libdrm2, libtiff6,
 Description: libcamera for Sparrow Hawk kernel
 Provides: gstreamer1.0-libcamera
 Conflicts: gstreamer1.0-libcamera
