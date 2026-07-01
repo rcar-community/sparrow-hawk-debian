@@ -160,6 +160,25 @@ network:
 EOF
 '")
 
+# 8) Boot reliability: ifupdown noise & apt/cloud-init clock race
+CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
+  systemctl mask networking.service
+  systemctl enable systemd-time-wait-sync.service
+  mkdir -p /etc/systemd/system/systemd-time-wait-sync.service.d
+  cat > /etc/systemd/system/systemd-time-wait-sync.service.d/10-timeout.conf <<EOF
+[Service]
+TimeoutStartSec=60
+EOF
+  for unit in cloud-config cloud-final; do
+    mkdir -p /etc/systemd/system/\${unit}.service.d
+    cat > /etc/systemd/system/\${unit}.service.d/10-wait-for-time-sync.conf <<EOF
+[Unit]
+Wants=systemd-time-wait-sync.service
+After=systemd-time-wait-sync.service
+EOF
+  done
+'")
+
 echo "=== mmdebstrap build parameters ==="
 echo "ARCH       : ${ARCH}"
 echo "SUITE      : ${SUITE}"
