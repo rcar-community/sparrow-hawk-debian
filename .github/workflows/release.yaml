@@ -21,7 +21,7 @@ jobs:
     name: Prepare Release apt repository and debian based os image
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - name: Setup package
         run: |
           sudo apt update
