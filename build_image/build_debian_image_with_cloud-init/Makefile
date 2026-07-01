@@ -4,6 +4,7 @@ SUITE ?= trixie
 MIRROR ?= http://deb.debian.org/debian
 
 NAME ?= sparrowhawk
+REPO_OWNER := $(shell git remote -v | grep origin | head -1 | sed -e 's/.*github\.com[:/]//' -e 's/\/.*//')
 DATE := $(shell date +%Y%m%d)
 OUTDIR := out
 ROOTFS := $(OUTDIR)/rootfs
@@ -29,8 +30,8 @@ $(IMG).xz: rootfs.done
 
 $(REPO): $(IMG).xz
 	python3 scripts/04_update_repo_json.py "$(XZ)" "$(REPO)" \
-		"https://github.com/yhamamachi/apt-repo-test/releases/download/binary_release/$(notdir $(XZ))" \
-		"https://github.com/yhamamachi/apt-repo-test/releases/download/binary_release/sh-mascot.png"
+		"https://github.com/$(REPO_OWNER)/sparrow-hawk-debian/releases/download/binary_release/$(notdir $(XZ))" \
+		"https://github.com/$(REPO_OWNER)/sparrow-hawk-debian/releases/download/binary_release/sh-mascot.png"
 
 clean:
 	sudo rm -rf "$(OUTDIR)" rootfs.done

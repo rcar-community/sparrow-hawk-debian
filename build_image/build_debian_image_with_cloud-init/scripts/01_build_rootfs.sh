@@ -63,6 +63,12 @@ CLOUD_CFG_90="${PROJ_ROOT}/config/cloud/90-datasource.cfg"
 CLOUD_CFG_91="${PROJ_ROOT}/config/cloud/91-nocloud.cfg"
 OVERLAY_DIR="${PROJ_ROOT}/overlay"
 
+# Sparrow Hawk apt repo (published via GitHub Pages from the apt-repo* branch)
+: "${REPO_OWNER:=$(git -C "${PROJ_ROOT}" remote -v | grep origin | head -1 | sed -e 's/.*github\.com[:\/]//' -e 's/\/.*//')}"
+: "${BRANCH:=$(git -C "${PROJ_ROOT}" rev-parse --abbrev-ref HEAD)}"
+SPARROW_HAWK_APT_URL="https://${REPO_OWNER}.github.io/sparrow-hawk-debian/${BRANCH}"
+SPARROW_HAWK_GPG_URL="https://${REPO_OWNER}.github.io/sparrow-hawk-debian/sparrow-hawk-repo.asc"
+
 # Convert packages.base.txt -> whitespace-separated list (strip comments/blank lines)
 # mmdebstrap --include supports comma OR whitespace separated lists.  (manpage) 
 PKGS="$(sed -e 's/#.*$//' -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
@@ -129,7 +135,9 @@ fi
 # 5) Setup sparrow hawk package
 CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   export DEBIAN_FRONTEND=noninteractive
-  echo \"deb [trusted=yes] https://yhamamachi.github.io/apt-repo/ bookworm main\" > /etc/apt/sources.list.d/sparrow-hawk.list
+  command -v curl >/dev/null 2>&1 || (apt-get update && apt-get install -y --no-install-recommends curl)
+  curl -fsSL \"${SPARROW_HAWK_GPG_URL}\" -o /etc/apt/trusted.gpg.d/sparrow-hawk-repo.asc
+  echo \"deb [arch=arm64 trusted=yes signed-by=/etc/apt/trusted.gpg.d/sparrow-hawk-repo.asc] ${SPARROW_HAWK_APT_URL} ${SUITE} main\" > /etc/apt/sources.list.d/sparrow-hawk.list
   apt-get update && apt-get install -y sparrow-hawk-bsp
 '")
 
