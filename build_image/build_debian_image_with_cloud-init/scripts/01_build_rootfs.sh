@@ -163,6 +163,12 @@ EOF
 # 8) Boot reliability: ifupdown noise & apt/cloud-init clock race
 CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   systemctl mask networking.service
+  mkdir -p /etc/systemd/system/systemd-timesyncd.service.d
+  cat > /etc/systemd/system/systemd-timesyncd.service.d/10-wait-for-network.conf <<EOF
+[Unit]
+Wants=network-online.target
+After=network-online.target
+EOF
   systemctl enable systemd-time-wait-sync.service
   mkdir -p /etc/systemd/system/systemd-time-wait-sync.service.d
   cat > /etc/systemd/system/systemd-time-wait-sync.service.d/10-timeout.conf <<EOF
