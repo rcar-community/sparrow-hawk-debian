@@ -185,6 +185,14 @@ EOF
   done
 '")
 
+# 9) rfkill: pre-create state dir so imager-generated cloud-init scripts
+#    (e.g. Wi-Fi unblock via /var/lib/systemd/rfkill/*) don't fail on a
+#    board with no onboard Wi-Fi/BT (dir is only created once a rfkill
+#    device add event fires).
+CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
+  mkdir -p /var/lib/systemd/rfkill
+'")
+
 echo "=== mmdebstrap build parameters ==="
 echo "ARCH       : ${ARCH}"
 echo "SUITE      : ${SUITE}"
