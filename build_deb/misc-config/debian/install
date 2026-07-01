@@ -1,3 +1,5 @@
 autoload.conf etc/modules-load.d/.
 10-drm-device.conf etc/X11/xorg.conf.d/.
+cmemdrv.conf lib/modprobe.d/.
+uio_pdrv_genirq.conf lib/modprobe.d/.
 
