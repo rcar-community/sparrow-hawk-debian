@@ -1,0 +1,38 @@
+# init / system
+systemd
+systemd-sysv
+udev
+dbus
+avahi-daemon
+
+# networking
+iproute2
+iputils-ping
+netplan.io
+systemd-resolved
+
+# remote access
+openssh-server
+
+# cloud-init
+cloud-init
+
+# package management / tls
+apt
+apt-utils
+ca-certificates
+
+# user management
+sudo
+passwd
+
+# basic shell / utils
+bash
+coreutils
+procps
+less
+locales
+
+# developmen tool
+#build-essentials
+
