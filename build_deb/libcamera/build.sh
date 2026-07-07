@@ -24,7 +24,7 @@ if [[ "${DEBIAN_VER}" == "" ]];then
 fi
 
 cd ${SCRIPT_DIR}
-git clone https://git.libcamera.org/libcamera/libcamera.git
+git clone https://gitlab.freedesktop.org/camera/libcamera.git
 cd libcamera
 git fetch
 git archive ${COMMIT} -o ../${PKG}_${VERSION}.orig.tar.gz
