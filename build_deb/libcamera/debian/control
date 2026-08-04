@@ -13,6 +13,9 @@ Architecture: all
 Depends: ${misc:Depends},
     libdw1, libunwind8, libevent-dev, libdrm2, libtiff6,
 Description: libcamera for Sparrow Hawk kernel
-Provides: gstreamer1.0-libcamera
-Conflicts: gstreamer1.0-libcamera
-Replaces: gstreamer1.0-libcamera
+Provides: gstreamer1.0-libcamera, libcamera0.0.3, libcamera0.4, libcamera-dev,
+    libcamera-ipa, libcamera-tools, libcamera-v4l2, python3-libcamera
+Conflicts: gstreamer1.0-libcamera, libcamera0.0.3, libcamera0.4, libcamera-dev,
+    libcamera-ipa, libcamera-tools, libcamera-v4l2, python3-libcamera
+Replaces: gstreamer1.0-libcamera, libcamera0.0.3, libcamera0.4, libcamera-dev,
+    libcamera-ipa, libcamera-tools, libcamera-v4l2, python3-libcamera
