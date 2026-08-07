@@ -1,6 +1,7 @@
-sparrow-hawk-bsp (1.0.0-8) UNRELEASED; urgency=medium
+sparrow-hawk-bsp (1.0.0-9) UNRELEASED; urgency=medium
 
   * Initial release for Sparrow Hawk
   * Fix dependencies
+  * Add sparrow-hawk-ai-sdk-support dependency
 
- -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Sat, 14 Feb 2026 23:30:53 +0900
+ -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Fri, 07 Aug 2026 00:00:00 +0900

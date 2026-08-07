@@ -13,6 +13,7 @@ Architecture: all
 Depends: ${misc:Depends},
     linux-image-6.18-arm64-renesas,
     linux-headers-6.18-arm64-renesas,
+    sparrow-hawk-ai-sdk-support,
     sparrow-hawk-arm-trusted-firmware,
     sparrow-hawk-kernel-module-cmemdrv,
     sparrow-hawk-libcamera,
