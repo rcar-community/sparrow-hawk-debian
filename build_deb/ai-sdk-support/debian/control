@@ -1,0 +1,25 @@
+Source: sparrow-hawk-ai-sdk-support
+Section: misc
+Priority: optional
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+
+Package: sparrow-hawk-ai-sdk-support
+Architecture: all
+Depends: ${misc:Depends}, libopencv-imgcodecs-dev, libopencv-videoio-dev, rpm2cpio, cpio
+Description: Helper scripts for HostPC-built AI SDK applications (HyCo/Reaction)
+ Sparrow Hawk Debian ships a newer OpenCV than the one HostPC-built AI
+ SDK applications (e.g. HyCo/Reaction) are typically linked against,
+ and some of those applications only run correctly as root.
+ .
+ This package pulls in OpenCV so it is available on the system, and
+ installs ai-sdk-support-helper, an operator-invoked helper script
+ to create shared library ABI compatibility symlinks (e.g. for OpenCV
+ or libcrypt), to unlock/configure the root account (including
+ enabling password-based root SSH login), and to check for the uio
+ devices those apps require. None of these actions are performed
+ automatically.
