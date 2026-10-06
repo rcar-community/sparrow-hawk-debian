@@ -75,14 +75,19 @@ fi
 
 # Check FAN
 setenv fan_conf ''
-if test "${fan}" -eq "pwm" ; then
+if itest.s "${fan}" == "pwm" ; then
     setenv fan_conf '#fan-pwm'
 fi
-if test "${fan}" -eq "argon40" ; then
+if itest.s "${fan}" == "argon40" ; then
     i2c dev 3
     if i2c probe 0x1a; then
         setenv fan_conf '#fan-argon40'
     fi
+fi
+
+# Enable UIO devicetree overlay if not disabled explicitly
+if itest.s "${disable_uio}" != "1"; then
+    setenv uio_conf '#uio'
 fi
 
 echo --- Check Boot device ---;
@@ -101,7 +106,7 @@ else
 fi
 
 echo --- Booting ---;
-setenv conf "${initramfs_conf}${j1_conf}${j2_conf}${j4_conf}${fan_conf}${conf_append}"
+setenv conf "${initramfs_conf}${j1_conf}${j2_conf}${j4_conf}${fan_conf}${uio_conf}${conf_append}"
 echo bootcmd: bootm ${loadaddr}${conf}
 bootm ${loadaddr}${conf}
 
