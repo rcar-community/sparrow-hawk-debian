@@ -169,14 +169,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           ./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13
-
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop gnome
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop xfce
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop kde
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop cinnamon
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop gnome-flashback
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop mate
-          #./build_image/build_with_docker_sparrow-hawk.sh 13 --desktop lxqt
+          ./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13 --desktop xfce
 
       - name: Build debian image (cloud-init)
         run: |
