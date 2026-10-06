@@ -213,11 +213,11 @@ jobs:
           BRANCH="${{ github.ref_name }}"
           if [[ "$BRANCH" == "main" ]]; then
             # ex.) vYYYY-MM-DD
-            RELEASE_VER=$(cat RELEASE_VERSION)
+            RELEASE_VER=$(cat .RELEASE_VERSION)
             if [[ -z "$RELEASE_VER" ]]; then
               echo "TAG_NAME=v$(date +'%Y-%m-%d')" >> $GITHUB_ENV
             else
-              echo "TAG_NAME=${.RELEASE_VER}" >> $GITHUB_ENV
+              echo "TAG_NAME=${RELEASE_VER}" >> $GITHUB_ENV
             fi
           elif [[ "$BRANCH" == "dev" ]]; then
             echo "TAG_NAME=dev-latest" >> $GITHUB_ENV
