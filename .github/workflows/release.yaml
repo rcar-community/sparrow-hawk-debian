@@ -200,7 +200,27 @@ jobs:
           ### Source/License
 
           Sparrow Hawk dedicated deb package: Please check build_deb.zip in this release.
+          GFX packages: Provided by the rcar-gfx apt repository, not by Debian. Please see "GFX packages" below.
           others: Please check deb-src by using apt. Debian default packages are used in this image.
+
+          ### GFX packages
+
+          The Debian 13 (trixie) images include the `sparrow-hawk-gfx` metapackage and the packages it depends on.
+          They are built and published by https://github.com/rcar-community/rcar-gfx
+          (apt repository: https://rcar-community.github.io/rcar-gfx/main).
+
+          - `rogueum` (GPU user mode driver): Provided in binary form only.
+            It is licensed by Renesas Electronics under the following conditions (see License.txt in rcar-gfx).
+            Please read them before redistributing the image.
+            - Redistribution and use in binary form, without modification, are permitted.
+            - No reverse engineering, decompilation, or disassembly of the binary software is permitted.
+            - Any redistribution and use are licensed for use only with Renesas Electronics's devices.
+          - `roguekm-dkms` (GPU kernel module): Provided as source code and built with DKMS. The license is GPL-2+ or MIT.
+          - `mesa-*`, `libgbm1`, `libegl-mesa0`, `libglx-mesa0`, `xwayland`, `xserver-xorg-core`, `xserver-common`:
+            Patched versions of the Debian packages for the GPU driver. Each package keeps the license of its upstream project.
+          - The license of each package is also installed as `/usr/share/doc/<package>/copyright` in the image.
+          - These packages are pinned (APT priority 1001) so that Debian updates do not replace them.
+            Debian security updates of these packages are not applied automatically.
 
           EOS
 
