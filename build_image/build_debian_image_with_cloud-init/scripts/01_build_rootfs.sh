@@ -39,6 +39,7 @@ PKG_FILE="${5:-config/packages.base.txt}"
 : "${OVERLAY:=1}"                # 1: apply overlay/, 0: skip
 : "${CLOUDINIT_CFG:=1}"          # 1: install cloud-init NoCloud config, 0: skip
 : "${APT_CLEAN:=1}"              # 1: clean apt cache in chroot (smaller rootfs)
+: "${DESKTOP:=}"                 # desktop environment (ex. xfce), empty: headless
 
 if [[ -z "${ARCH}" || -z "${SUITE}" || -z "${MIRROR}" || -z "${ROOTFS}" ]]; then
   echo "ERROR: Missing arguments."
@@ -163,12 +164,22 @@ CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   fi
 '")
 
-# 6) apt cleanup
+# 6) Desktop environment
+# Install it after the GFX packages, otherwise the Debian Xorg/Mesa get
+# installed first and apt refuses to downgrade them to the pinned GFX ones.
+if [[ -n "${DESKTOP}" ]]; then
+  CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update && apt-get install -y task-${DESKTOP}-desktop
+'")
+fi
+
+# 7) apt cleanup
 if [[ "${APT_CLEAN}" == "1" ]]; then
   CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'apt-get clean || true; rm -rf /var/lib/apt/lists/* || true'")
 fi
 
-# 7) Network setup
+# 8) Network setup
 CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   mkdir -p /boot
   cat > /etc/netplan/99-end0.yaml <<EOF
@@ -182,7 +193,7 @@ network:
 EOF
 '")
 
-# 8) Boot reliability: ifupdown noise & apt/cloud-init clock race
+# 9) Boot reliability: ifupdown noise & apt/cloud-init clock race
 CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   systemctl mask networking.service
   mkdir -p /etc/systemd/system/systemd-timesyncd.service.d
@@ -207,7 +218,7 @@ EOF
   done
 '")
 
-# 9) rfkill: pre-create state dir so imager-generated cloud-init scripts
+# 10) rfkill: pre-create state dir so imager-generated cloud-init scripts
 #    (e.g. Wi-Fi unblock via /var/lib/systemd/rfkill/*) don't fail on a
 #    board with no onboard Wi-Fi/BT (dir is only created once a rfkill
 #    device add event fires).
@@ -223,6 +234,7 @@ echo "TARGET     : ${ROOTFS}"
 echo "VARIANT    : ${VARIANT}"
 echo "MODE       : ${MODE}"
 echo "COMPONENTS : ${COMPONENTS}"
+echo "DESKTOP    : ${DESKTOP:-none}"
 echo "PKG_FILE   : ${PKG_FILE}"
 echo "INCLUDE_PKGS (filtered): ${PKGS}"
 echo "==================================="

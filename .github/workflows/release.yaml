@@ -176,6 +176,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/build_image/build_debian_image_with_cloud-init
           make image
+          make image DESKTOP=xfce
 
       - name: Generate release message
         run: |

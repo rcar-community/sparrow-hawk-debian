@@ -27,7 +27,8 @@ The following images are provided:
 
 - Debian 13 (trixie) image
 - Debian 13 (trixie) image with the Xfce desktop (`-xfce`)
-- Debian 13 (trixie) image with cloud-init
+- Debian 13 (trixie) image with cloud-init (for Raspberry Pi Imager)
+- Debian 13 (trixie) image with cloud-init and the Xfce desktop (`-xfce`, for Raspberry Pi Imager)
 
 ## GFX Packages
 
