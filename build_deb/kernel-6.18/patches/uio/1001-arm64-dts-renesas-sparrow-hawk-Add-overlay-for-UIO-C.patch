@@ -41,10 +41,10 @@ index 000000000000..76f063fa0228
 +		range;
 +
 +		/* global autoconfigured region for contiguous allocations */
-+		cma@70000000 {
++		cma@60000000 {
 +			compatible = "shared-dma-pool";
 +			reusable;
-+			reg = <0x00000000 0x70000000 0x0 0x30000000>;
++			reg = <0x00000000 0x60000000 0x0 0x40000000>;
 +			linux,cma-default;
 +		};
 +	
