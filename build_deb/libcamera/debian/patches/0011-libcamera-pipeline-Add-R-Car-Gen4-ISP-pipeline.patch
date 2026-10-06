@@ -1,45 +1,44 @@
-From 4d1d37f9debc99705bc47585cbb55bd50f128118 Mon Sep 17 00:00:00 2001
+From bbe5098c9ffc0204104cad5127046d564dc429c8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
  <niklas.soderlund+renesas@ragnatech.se>
-Date: Tue, 17 Jun 2025 12:38:14 +0200
-Subject: [PATCH 05/15] libcamera: pipeline: Add R-Car Gen4 ISP pipeline
+Date: Fri, 18 Sep 2026 14:09:39 +0200
+Subject: [PATCH] libcamera: pipeline: Add R-Car Gen4 ISP pipeline
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Add a pipeline handler for R-Car Gen4. The pipeline makes use of the
-RkISP1 IPA and, depending on the kernel R-Car ISP driver, support the
-same features as the RkISP1 pipeline handler.
+Add a pipeline handler for R-Car Gen4. The pipeline will make use of the new
+"rppx1" ipa module that will be introduced momentarily.
 
-The pipeline and IPA is tested with the AWB measurement, Histogram
-Measurement, Auto Exposure Measurement, AWB gain, Black Level
-Correction, Color Correction Matrix, Lens Shade Correction and Gamma
-Correction algorithms and produce a stable and good image.
+There are two distinct parts of the pipeline: one capture block (VIN) that is
+responsible for acquiring the raw images from the sensor and supplying them to
+user-space, and the ISP operating in memory-to-memory mode that produces the
+processed images and statistics from the raw image. Notably, there is no usable
+scaler in this configuration (the VIN device can only scale non-raw images), so
+the resolutions need to match in the whole pipeline beginning with the sensor.
 
-Tested on R-Car V4H Sparrow-Hawk together with IMX219 and IMX462
-sensors.
+Tested on R-Car V4H Sparrow-Hawk together with IMX219 and IMX708 sensors.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+Upstream-Status: Submitted [https://patchwork.libcamera.org/patch/28349/]
+
 ---
-* Changes since v1
-- Fix camera names. Was 'imx462 2-001a', is now '/base/soc/i2c@e6510000/cam@1a'.
-- Fix a compiler issue with some versions of gcc.
-- Add dependency on rkisp1.mojom.
-- Rebase on latest master branch which requires reworking some
-  interfaces.
----
+ Documentation/Doxyfile-common.in              |   1 +
  include/libcamera/ipa/meson.build             |   1 +
+ include/libcamera/ipa/rppx1.mojom             |  40 +
  meson.build                                   |   1 +
  meson_options.txt                             |   1 +
- src/libcamera/pipeline/rcar-gen4/frames.cpp   | 280 ++++++
- src/libcamera/pipeline/rcar-gen4/frames.h     |  85 ++
- src/libcamera/pipeline/rcar-gen4/isp.cpp      | 227 +++++
- src/libcamera/pipeline/rcar-gen4/isp.h        |  44 +
+ src/libcamera/pipeline/rcar-gen4/frames.cpp   | 270 ++++++
+ src/libcamera/pipeline/rcar-gen4/frames.h     |  84 ++
+ src/libcamera/pipeline/rcar-gen4/isp.cpp      | 193 ++++
+ src/libcamera/pipeline/rcar-gen4/isp.h        |  39 +
  src/libcamera/pipeline/rcar-gen4/meson.build  |   8 +
- .../pipeline/rcar-gen4/rcar-gen4.cpp          | 815 ++++++++++++++++++
- src/libcamera/pipeline/rcar-gen4/vin.cpp      | 391 +++++++++
- src/libcamera/pipeline/rcar-gen4/vin.h        |  66 ++
- 11 files changed, 1919 insertions(+)
+ .../pipeline/rcar-gen4/rcar-gen4.cpp          | 870 ++++++++++++++++++
+ src/libcamera/pipeline/rcar-gen4/vin.cpp      | 173 ++++
+ src/libcamera/pipeline/rcar-gen4/vin.h        |  60 ++
+ 13 files changed, 1741 insertions(+)
+ create mode 100644 include/libcamera/ipa/rppx1.mojom
  create mode 100644 src/libcamera/pipeline/rcar-gen4/frames.cpp
  create mode 100644 src/libcamera/pipeline/rcar-gen4/frames.h
  create mode 100644 src/libcamera/pipeline/rcar-gen4/isp.cpp
@@ -49,20 +48,78 @@ Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
  create mode 100644 src/libcamera/pipeline/rcar-gen4/vin.cpp
  create mode 100644 src/libcamera/pipeline/rcar-gen4/vin.h
 
+diff --git a/Documentation/Doxyfile-common.in b/Documentation/Doxyfile-common.in
+index f11ec593d..131fdcc60 100644
+--- a/Documentation/Doxyfile-common.in
++++ b/Documentation/Doxyfile-common.in
+@@ -37,6 +37,7 @@ EXCLUDE_PATTERNS       = @TOP_BUILDDIR@/include/libcamera/ipa/*_serializer.h \
+                          @TOP_BUILDDIR@/include/libcamera/ipa/mali-c55_*.h \
+                          @TOP_BUILDDIR@/include/libcamera/ipa/raspberrypi_*.h \
+                          @TOP_BUILDDIR@/include/libcamera/ipa/rkisp1_*.h \
++                         @TOP_BUILDDIR@/include/libcamera/ipa/rppx1_*.h \
+                          @TOP_BUILDDIR@/include/libcamera/ipa/vimc_*.h
+ 
+ EXCLUDE_SYMBOLS        = libcamera::BoundMethodArgs \
 diff --git a/include/libcamera/ipa/meson.build b/include/libcamera/ipa/meson.build
-index 3ee3ada3..48eb19b2 100644
+index fb518526a..7dcefc8b2 100644
 --- a/include/libcamera/ipa/meson.build
 +++ b/include/libcamera/ipa/meson.build
-@@ -66,6 +66,7 @@ pipeline_ipa_mojom_mapping = {
+@@ -65,6 +65,7 @@ libcamera_ipa_headers += custom_target('core_ipa_serializer_h',
+ pipeline_ipa_mojom_mapping = {
      'ipu3': 'ipu3.mojom',
      'mali-c55': 'mali-c55.mojom',
++    'rcar-gen4': 'rppx1.mojom',
      'rkisp1': 'rkisp1.mojom',
-+    'rcar-gen4': 'rkisp1.mojom',
      'rpi/pisp': 'raspberrypi.mojom',
      'rpi/vc4': 'raspberrypi.mojom',
-     'simple': 'soft.mojom',
+diff --git a/include/libcamera/ipa/rppx1.mojom b/include/libcamera/ipa/rppx1.mojom
+new file mode 100644
+index 000000000..6d280b9ef
+--- /dev/null
++++ b/include/libcamera/ipa/rppx1.mojom
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: LGPL-2.1-or-later */
++
++/*
++ * \todo Document the interface and remove the related EXCLUDE_PATTERNS entry.
++ */
++
++module ipa.rppx1;
++
++import "include/libcamera/ipa/core.mojom";
++
++struct IPAConfigInfo {
++	libcamera.IPACameraSensorInfo sensorInfo;
++	libcamera.ControlInfoMap sensorControls;
++};
++
++interface IPARppX1Interface {
++	init(libcamera.IPASettings settings,
++	     libcamera.IPACameraSensorInfo sensorInfo,
++	     libcamera.ControlInfoMap sensorControls)
++		=> (int32 ret, libcamera.ControlInfoMap ipaControls);
++	start() => (int32 ret);
++	stop();
++
++	configure(IPAConfigInfo configInfo)
++		=> (int32 ret, libcamera.ControlInfoMap ipaControls);
++
++	mapBuffers(array<libcamera.IPABuffer> buffers);
++	unmapBuffers(array<uint32> ids);
++
++	[async] queueRequest(uint32 frame, libcamera.ControlList reqControls);
++	[async] computeParams(uint32 frame, uint32 bufferId);
++	[async] processStats(uint32 frame, uint32 bufferId,
++			     libcamera.ControlList sensorControls);
++};
++
++interface IPARppX1EventInterface {
++	paramsComputed(uint32 frame, uint32 bytesused);
++	setSensorControls(uint32 frame, libcamera.ControlList sensorControls);
++	metadataReady(uint32 frame, libcamera.ControlList metadata);
++};
 diff --git a/meson.build b/meson.build
-index fa6487f6..a0503596 100644
+index 37fe9ce4f..6598d8c43 100644
 --- a/meson.build
 +++ b/meson.build
 @@ -218,6 +218,7 @@ pipelines_support = {
@@ -74,10 +131,10 @@ index fa6487f6..a0503596 100644
      'rpi/pisp':     arch_arm,
      'rpi/vc4':      arch_arm,
 diff --git a/meson_options.txt b/meson_options.txt
-index c052e85a..074db191 100644
+index e829ebe60..3c4bc9f8e 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
-@@ -56,6 +56,7 @@ option('pipelines',
+@@ -81,6 +81,7 @@ option('pipelines',
              'imx8-isi',
              'ipu3',
              'mali-c55',
@@ -87,10 +144,10 @@ index c052e85a..074db191 100644
              'rpi/vc4',
 diff --git a/src/libcamera/pipeline/rcar-gen4/frames.cpp b/src/libcamera/pipeline/rcar-gen4/frames.cpp
 new file mode 100644
-index 00000000..c604924b
+index 000000000..496dac1bc
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/frames.cpp
-@@ -0,0 +1,280 @@
+@@ -0,0 +1,270 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -109,20 +166,22 @@ index 00000000..c604924b
 +#include "libcamera/internal/framebuffer.h"
 +#include "libcamera/internal/pipeline_handler.h"
 +
++#include "isp.h"
++
 +namespace libcamera {
 +
 +LOG_DECLARE_CATEGORY(RCar4)
 +
-+int RCar4Frames::start(class RCarISPDevice *isp, class ipa::rkisp1::IPAProxyRkISP1 *ipa)
++int RCar4Frames::start(RCarISPDevice *isp, ipa::rppx1::IPAProxyRppX1 *ipa,
++		       unsigned int bufferCount)
 +{
 +	unsigned int ipaBufferId = 1;
-+	unsigned int bufferCount;
 +	int ret;
 +
 +	auto pushBuffers = [&](const std::vector<std::unique_ptr<FrameBuffer>> &buffers,
 +			       std::queue<FrameBuffer *> &queue) {
 +		for (const std::unique_ptr<FrameBuffer> &buffer : buffers) {
-+			Span<const FrameBuffer::Plane> planes = buffer->planes();
++			std::span<const FrameBuffer::Plane> planes = buffer->planes();
 +
 +			buffer->setCookie(ipaBufferId++);
 +			ipaBuffers_.emplace_back(buffer->cookie(),
@@ -133,11 +192,6 @@ index 00000000..c604924b
 +	};
 +
 +	frameInfo_.clear();
-+
-+	bufferCount = std::max({
-+		rawStream_.configuration().bufferCount,
-+		outputStream_.configuration().bufferCount,
-+	});
 +
 +	ret = isp->input_->exportBuffers(bufferCount, &inputBuffers_);
 +	if (ret < 0) {
@@ -180,7 +234,7 @@ index 00000000..c604924b
 +	return ret;
 +}
 +
-+void RCar4Frames::stop(class RCarISPDevice *isp, class ipa::rkisp1::IPAProxyRkISP1 *ipa)
++void RCar4Frames::stop(RCarISPDevice *isp, ipa::rppx1::IPAProxyRppX1 *ipa)
 +{
 +	std::vector<unsigned int> ids;
 +
@@ -246,24 +300,20 @@ index 00000000..c604924b
 +	if (!inputBuffer) {
 +		inputBuffer = availableInputBuffers_.front();
 +		availableInputBuffers_.pop();
-+		inputBuffer->_d()->setRequest(request);
 +	}
 +
 +	FrameBuffer *paramBuffer = availableParamBuffers_.front();
 +	availableParamBuffers_.pop();
-+	paramBuffer->_d()->setRequest(request);
 +
 +	FrameBuffer *statBuffer = availableStatBuffers_.front();
 +	availableStatBuffers_.pop();
-+	statBuffer->_d()->setRequest(request);
 +
 +	if (!outputBuffer) {
 +		outputBuffer = availableOutputBuffers_.front();
 +		availableOutputBuffers_.pop();
-+		outputBuffer->_d()->setRequest(request);
 +	}
 +
-+	/* Recored the info needed to process one frame. */
++	/* Record the info needed to process one frame. */
 +	auto [it, inserted] = frameInfo_.try_emplace(frame);
 +	if (!inserted)
 +		return nullptr;
@@ -331,9 +381,6 @@ index 00000000..c604924b
 +
 +	remove(info);
 +
-+	/* Signal new internal buffers available. */
-+	bufferAvailable.emit();
-+
 +	return true;
 +}
 +
@@ -354,8 +401,8 @@ index 00000000..c604924b
 +	for (auto &itInfo : frameInfo_) {
 +		Info *info = &itInfo.second;
 +
-+		for (auto const itBuffers : info->request->buffers())
-+			if (itBuffers.second == buffer)
++		for (const auto &[stream, fb] : info->request->buffers())
++			if (buffer == fb)
 +				return info;
 +
 +		if (info->inputBuffer == buffer ||
@@ -373,10 +420,10 @@ index 00000000..c604924b
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/frames.h b/src/libcamera/pipeline/rcar-gen4/frames.h
 new file mode 100644
-index 00000000..24573fe0
+index 000000000..79365f38e
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/frames.h
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,84 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -397,14 +444,13 @@ index 00000000..24573fe0
 +#include <libcamera/controls.h>
 +#include <libcamera/stream.h>
 +
-+#include <libcamera/ipa/core_ipa_interface.h>
-+#include <libcamera/ipa/rkisp1_ipa_interface.h>
-+#include <libcamera/ipa/rkisp1_ipa_proxy.h>
++#include <libcamera/ipa/rppx1_ipa_proxy.h>
 +
 +#include "isp.h"
 +
 +namespace libcamera {
 +
++class RCarISPDevice;
 +class FrameBuffer;
 +class Request;
 +
@@ -428,8 +474,9 @@ index 00000000..24573fe0
 +		bool outputDequeued;
 +	};
 +
-+	int start(class RCarISPDevice *isp, class ipa::rkisp1::IPAProxyRkISP1 *ipa);
-+	void stop(class RCarISPDevice *isp, class ipa::rkisp1::IPAProxyRkISP1 *ipa);
++	int start(RCarISPDevice *isp, ipa::rppx1::IPAProxyRppX1 *ipa,
++		  unsigned int bufferCount);
++	void stop(RCarISPDevice *isp, ipa::rppx1::IPAProxyRppX1 *ipa);
 +
 +	Info *create(Request *request);
 +	void remove(Info *info);
@@ -438,10 +485,9 @@ index 00000000..24573fe0
 +	Info *find(unsigned int frame);
 +	Info *find(FrameBuffer *buffer);
 +
-+	Signal<> bufferAvailable;
-+
 +	Stream rawStream_;
 +	Stream outputStream_;
++
 +private:
 +	std::map<unsigned int, Info> frameInfo_;
 +
@@ -464,10 +510,10 @@ index 00000000..24573fe0
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/isp.cpp b/src/libcamera/pipeline/rcar-gen4/isp.cpp
 new file mode 100644
-index 00000000..1d9d7f98
+index 000000000..7166cc2ca
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/isp.cpp
-@@ -0,0 +1,227 @@
+@@ -0,0 +1,193 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -566,76 +612,42 @@ index 00000000..1d9d7f98
 +	return 0;
 +}
 +
-+std::vector<PixelFormat> RCarISPDevice::formats() const
-+{
-+	std::vector<PixelFormat> formats;
-+	for (const auto &[format, sizes] : output_->formats())
-+		formats.push_back(format.toPixelFormat());
-+
-+	return formats;
-+}
-+
-+StreamConfiguration
-+RCarISPDevice::generateConfiguration(PixelFormat format, Size size) const
-+{
-+	StreamConfiguration cfg;
-+
-+	bool found = false;
-+	for (const auto &pixelFormat : formats()) {
-+		if (pixelFormat == format)
-+			found = true;
-+	}
-+
-+	cfg.size = size;
-+	cfg.bufferCount = kBufferCount;
-+	cfg.pixelFormat = found ? format : formats::XRGB8888;
-+
-+	/* Get stride and frame size from device. */
-+	V4L2DeviceFormat fmt;
-+	fmt.fourcc = output_->toV4L2PixelFormat(cfg.pixelFormat);
-+	fmt.size = cfg.size;
-+
-+	if (output_->tryFormat(&fmt))
-+		return {};
-+
-+	cfg.stride = fmt.planes[0].bpl;
-+	cfg.frameSize = fmt.planes[0].size;
-+
-+	return cfg;
-+}
-+
-+int RCarISPDevice::configure(V4L2DeviceFormat *inputFormat,
++int RCarISPDevice::configure(const V4L2DeviceFormat &sensorFormat,
 +			     const PixelFormat &outputPixelFormat)
 +{
++	auto inputFormat = sensorFormat;
 +	int ret;
 +
 +	/* Configure the RAW input. */
-+	ret = input_->setFormat(inputFormat);
++	ret = input_->setFormat(&inputFormat);
 +	if (ret)
 +		return ret;
 +
-+	LOG(RCar4, Debug) << "ISP input format = " << *inputFormat;
++	if (inputFormat.fourcc != sensorFormat.fourcc || inputFormat.size != sensorFormat.size)
++		return -EINVAL;
 +
 +	/* Configure the image output. */
-+	V4L2DeviceFormat outputFormat;
-+	outputFormat.fourcc = output_->toV4L2PixelFormat(outputPixelFormat);
-+	outputFormat.size = inputFormat->size;
++	V4L2DeviceFormat outputFormat = {};
++	auto outputPf = output_->toV4L2PixelFormat(outputPixelFormat);
++	outputFormat.fourcc = outputPf;
++	outputFormat.size = inputFormat.size;
 +	ret = output_->setFormat(&outputFormat);
 +	if (ret)
 +		return ret;
 +
-+	LOG(RCar4, Debug) << "ISP output format = " << outputFormat;
++	if (outputFormat.fourcc != outputPf || outputFormat.size != inputFormat.size)
++		return -EINVAL;
 +
 +	/* Configure paramaters. */
-+	V4L2DeviceFormat paramFormat;
-+	paramFormat.fourcc = V4L2PixelFormat(V4L2_META_FMT_RK_ISP1_EXT_PARAMS);
++	V4L2DeviceFormat paramFormat = {};
++	paramFormat.fourcc = V4L2PixelFormat(V4L2_META_FMT_RPPX1_PARAMS);
 +	ret = param_->setFormat(&paramFormat);
 +	if (ret)
 +		return ret;
 +
 +	/* Configure statistics. */
-+	V4L2DeviceFormat statFormat;
-+	statFormat.fourcc = V4L2PixelFormat(V4L2_META_FMT_RK_ISP1_STAT_3A);
++	V4L2DeviceFormat statFormat = {};
++	statFormat.fourcc = V4L2PixelFormat(V4L2_META_FMT_RPPX1_STATS);
 +	ret = stat_->setFormat(&statFormat);
 +	if (ret)
 +		return ret;
@@ -643,17 +655,17 @@ index 00000000..1d9d7f98
 +	return 0;
 +}
 +
-+int RCarISPDevice::start()
++int RCarISPDevice::start(unsigned int bufferCount)
 +{
 +	int ret;
 +
-+	ret = input_->importBuffers(kBufferCount);
++	ret = input_->importBuffers(bufferCount);
 +	if (ret) {
 +		LOG(RCar4, Error) << "Failed to import ISP input buffers";
 +		return ret;
 +	}
 +
-+	ret = output_->importBuffers(kBufferCount);
++	ret = output_->importBuffers(bufferCount);
 +	if (ret) {
 +		LOG(RCar4, Error) << "Failed to import ISP output buffers";
 +		return ret;
@@ -697,10 +709,10 @@ index 00000000..1d9d7f98
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/isp.h b/src/libcamera/pipeline/rcar-gen4/isp.h
 new file mode 100644
-index 00000000..57148dc4
+index 000000000..55987f1f5
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/isp.h
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,39 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -725,17 +737,12 @@ index 00000000..57148dc4
 +class RCarISPDevice
 +{
 +public:
-+	static constexpr unsigned int kBufferCount = 4;
-+
-+	std::vector<PixelFormat> formats() const;
-+
 +	int init(const MediaDevice *media, const std::string &pipeId);
 +
-+	StreamConfiguration generateConfiguration(PixelFormat format, Size size) const;
++	int configure(const V4L2DeviceFormat &inputFormat,
++		      const PixelFormat &outputPixelFormat);
 +
-+	int configure(V4L2DeviceFormat *inputFormat, const PixelFormat &outputPixelFormat);
-+
-+	int start();
++	int start(unsigned int bufferCount);
 +	void stop();
 +
 +	std::unique_ptr<V4L2VideoDevice> input_;
@@ -747,7 +754,7 @@ index 00000000..57148dc4
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/meson.build b/src/libcamera/pipeline/rcar-gen4/meson.build
 new file mode 100644
-index 00000000..431eb54e
+index 000000000..431eb54e2
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/meson.build
 @@ -0,0 +1,8 @@
@@ -761,10 +768,10 @@ index 00000000..431eb54e
 +])
 diff --git a/src/libcamera/pipeline/rcar-gen4/rcar-gen4.cpp b/src/libcamera/pipeline/rcar-gen4/rcar-gen4.cpp
 new file mode 100644
-index 00000000..74423dbc
+index 000000000..656fefc99
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/rcar-gen4.cpp
-@@ -0,0 +1,815 @@
+@@ -0,0 +1,870 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -778,14 +785,14 @@ index 00000000..74423dbc
 +#include <string>
 +#include <vector>
 +
-+#include <linux/rkisp1-config.h>
++#include <libcamera/base/utils.h>
 +
 +#include <libcamera/formats.h>
 +#include <libcamera/stream.h>
 +
 +#include <libcamera/ipa/core_ipa_interface.h>
-+#include <libcamera/ipa/rkisp1_ipa_interface.h>
-+#include <libcamera/ipa/rkisp1_ipa_proxy.h>
++#include <libcamera/ipa/rppx1_ipa_interface.h>
++#include <libcamera/ipa/rppx1_ipa_proxy.h>
 +
 +#include "libcamera/internal/camera.h"
 +#include "libcamera/internal/camera_sensor.h"
@@ -793,10 +800,9 @@ index 00000000..74423dbc
 +#include "libcamera/internal/device_enumerator.h"
 +#include "libcamera/internal/framebuffer.h"
 +#include "libcamera/internal/ipa_manager.h"
-+#include "libcamera/internal/mapped_framebuffer.h"
 +#include "libcamera/internal/media_device.h"
 +#include "libcamera/internal/pipeline_handler.h"
-+#include "libcamera/internal/v4l2_device.h"
++#include "libcamera/internal/request.h"
 +#include "libcamera/internal/v4l2_subdevice.h"
 +#include "libcamera/internal/v4l2_videodevice.h"
 +
@@ -808,16 +814,8 @@ index 00000000..74423dbc
 +
 +namespace {
 +
-+const std::map<PixelFormat, uint32_t> formatToMediaBus = {
-+	{ formats::SBGGR10, MEDIA_BUS_FMT_SBGGR10_1X10 },
-+	{ formats::SGBRG10, MEDIA_BUS_FMT_SGBRG10_1X10 },
-+	{ formats::SGRBG10, MEDIA_BUS_FMT_SGRBG10_1X10 },
-+	{ formats::SRGGB10, MEDIA_BUS_FMT_SRGGB10_1X10 },
-+};
-+
-+/* Max supported resolution of VIN and ISP. */
-+static constexpr Size MaxResolution = { 4096, 4096 };
-+static constexpr unsigned int nBuffers = 4;
++static constexpr unsigned int kMaxRequests = 4;
++static constexpr unsigned int kDefaultBufferCount = kMaxRequests;
 +
 +} /* namespace */
 +
@@ -827,7 +825,7 @@ index 00000000..74423dbc
 + * Camera Data
 + */
 +
-+class RCar4CameraData : public Camera::Private
++class RCar4CameraData final : public Camera::Private
 +{
 +public:
 +	RCar4CameraData(PipelineHandler *pipe)
@@ -835,19 +833,16 @@ index 00000000..74423dbc
 +	{
 +	}
 +
-+	RCarVINDevice vin_;
-+	RCarISPDevice isp_;
-+	std::unique_ptr<ipa::rkisp1::IPAProxyRkISP1> ipa_;
++	int init(const MediaDevice *mdev, const std::string &pipeId);
 +
-+	RCar4Frames frames_;
-+	std::unique_ptr<DelayedControls> delayedCtrls_;
-+	ControlInfoMap ipaControls_;
++	[[nodiscard]]
++	bool populateFormats();
 +
-+	void queuePendingRequests();
-+	void cancelPendingRequests();
++	void updateControls();
 +
-+	/* Requests for which no buffer has been queued to the VIN device yet. */
-+	std::queue<Request *> pendingRequests_;
++	[[nodiscard]]
++	std::tuple<PixelFormat, unsigned int, Size>
++	findSensorFormat(PixelFormat pixelFormat, Size size, Transform transform) const;
 +
 +	/* Slots for processing ready buffers. */
 +	void vinBufferReady(FrameBuffer *buffer);
@@ -861,43 +856,244 @@ index 00000000..74423dbc
 +	void setSensorControls(unsigned int frame,
 +			       const ControlList &sensorControls);
 +	void metadataReady(unsigned int frame, const ControlList &metadata);
++
++	RCarVINDevice vin_;
++	RCarISPDevice isp_;
++	std::unique_ptr<ipa::rppx1::IPAProxyRppX1> ipa_;
++
++	RCar4Frames frames_;
++	std::unique_ptr<DelayedControls> delayedCtrls_;
++	ControlInfoMap ipaControls_;
++
++	std::map<unsigned int, std::vector<Size>> rawFormats_;
++	std::map<PixelFormat, std::vector<Size>> outputFormats_;
 +};
 +
-+void RCar4CameraData::queuePendingRequests()
++int RCar4CameraData::init(const MediaDevice *mdev, const std::string &pipeId)
 +{
-+	while (!pendingRequests_.empty()) {
-+		Request *request = pendingRequests_.front();
++	int ret;
 +
-+		RCar4Frames::Info *info = frames_.create(request);
-+		if (!info)
-+			break;
++	ret = vin_.init(mdev, pipeId);
++	if (ret)
++		return ret;
 +
-+		if (vin_.queueBuffer(info->inputBuffer)) {
-+			/* Remove if raw buffer failed, should not happen. */
-+			frames_.remove(info);
-+			break;
++	ret = isp_.init(mdev, pipeId);
++	if (ret)
++		return ret;
++
++	/*
++	 * Load the RPP-X1 IPA for use with RCar4.
++	 */
++	ipa_ = pipe()->createIPA<ipa::rppx1::IPAProxyRppX1>("rppx1", 1, 1);
++	if (!ipa_) {
++		LOG(RCar4, Error) << "No IPA module found";
++		return -ENOENT;
++	}
++
++	/* The IPA tuning file is made from the sensor name. */
++	std::string ipaTuningFile = ipa_->configurationFile(
++		vin_.sensor()->model() + ".yaml", "uncalibrated.yaml");
++
++	IPACameraSensorInfo sensorInfo;
++	ret = vin_.sensor()->sensorInfo(&sensorInfo);
++	if (ret) {
++		LOG(RCar4, Error) << "Camera sensor information not available";
++		return ret;
++	}
++
++	IPASettings settings{
++		std::move(ipaTuningFile),
++		vin_.sensor()->model(),
++	};
++
++	ret = ipa_->init(std::move(settings), sensorInfo,
++			 vin_.sensor()->controls(), &ipaControls_);
++	if (ret < 0) {
++		LOG(RCar4, Error) << "IPA initialization failure";
++		return ret;
++	}
++
++	updateControls();
++
++	/*
++	 * Initialize the camera properties.
++	 */
++	properties_ = vin_.sensor()->properties();
++	const CameraSensorProperties::SensorDelays &delays = vin_.sensor()->sensorDelays();
++	std::unordered_map<uint32_t, DelayedControls::ControlParams> params = {
++		{ V4L2_CID_ANALOGUE_GAIN, { delays.gainDelay, false } },
++		{ V4L2_CID_EXPOSURE, { delays.exposureDelay, false } },
++		{ V4L2_CID_VBLANK, { delays.vblankDelay, true } },
++	};
++
++	delayedCtrls_ = std::make_unique<DelayedControls>(
++		vin_.sensor()->device(), params);
++
++	/* Connect bufferReady for each video device to a handler. */
++	vin_.bufferReady().connect(this, &RCar4CameraData::vinBufferReady);
++	isp_.input_->bufferReady.connect(this, &RCar4CameraData::inputBufferReady);
++	isp_.param_->bufferReady.connect(this, &RCar4CameraData::paramBufferReady);
++	isp_.stat_->bufferReady.connect(this, &RCar4CameraData::statBufferReady);
++	isp_.output_->bufferReady.connect(this, &RCar4CameraData::outputBufferReady);
++
++	/* Connect IPA signals. */
++	ipa_->setSensorControls.connect(this, &RCar4CameraData::setSensorControls);
++	ipa_->paramsComputed.connect(this, &RCar4CameraData::paramsComputed);
++	ipa_->metadataReady.connect(this, &RCar4CameraData::metadataReady);
++
++	/* Apply controls at start of frame. */
++	vin_.frameStart().connect(delayedCtrls_.get(), &DelayedControls::applyControls);
++
++	if (!populateFormats()) {
++		LOG(RCar4, Error)
++			<< "Sensor " << vin_.sensor()->entity()->name()
++			<< " has no format and size compatible with the VIN and ISP";
++		return -ENOTSUP;
++	}
++
++	return 0;
++}
++
++namespace {
++
++/*
++ * \todo This should obviously be common code.
++ */
++void filterSizes(std::vector<Size> &sizes, std::span<const SizeRange> filter)
++{
++	for (auto it = sizes.begin(); it != sizes.end();) {
++		bool accept = false;
++
++		for (const auto &range : filter) {
++			accept = range.contains(*it);
++			if (accept)
++				break;
 +		}
 +
-+		ipa_->queueRequest(info->frame, request->controls());
-+
-+		pendingRequests_.pop();
++		if (!accept)
++			it = sizes.erase(it);
++		else
++			++it;
 +	}
 +}
 +
-+void RCar4CameraData::cancelPendingRequests()
-+{
-+	while (!pendingRequests_.empty()) {
-+		Request *request = pendingRequests_.front();
++} /* namespace */
 +
-+		for (auto it : request->buffers()) {
-+			FrameBuffer *buffer = it.second;
-+			buffer->_d()->cancel();
-+			pipe()->completeBuffer(request, buffer);
++/*
++ * \todo This should obviously be common code.
++ */
++bool RCar4CameraData::populateFormats()
++{
++	const auto &vinFormats = vin_.output()->formats();
++	const auto &inputFormats = isp_.input_->formats();
++	std::set<Size> outputSizes;
++
++	rawFormats_.clear();
++	outputFormats_.clear();
++
++	for (unsigned int mbusCode : vin_.sensor()->mbusCodes()) {
++		auto v4pf = BayerFormat::fromMbusCode(mbusCode).toV4L2PixelFormat();
++
++		auto it = vinFormats.find(v4pf);
++		if (it == vinFormats.end())
++			continue;
++
++		auto it2 = inputFormats.find(v4pf);
++		if (it2 == inputFormats.end())
++			continue;
++
++		auto sizes = vin_.sensor()->sizes(mbusCode);
++		filterSizes(sizes, it->second);
++		filterSizes(sizes, it2->second);
++
++		if (sizes.empty())
++			continue;
++
++		/*
++		 * \todo This assumes any input size is accepted as output size
++		 * for all output formats.
++		 */
++		outputSizes.insert(sizes.begin(), sizes.end());
++
++		rawFormats_.try_emplace(mbusCode, std::move(sizes));
++	}
++
++	for (const auto &[v4pf, sizes] : isp_.output_->formats()) {
++		auto pf = v4pf.toPixelFormat();
++		if (!pf.isValid())
++			continue;
++
++		outputFormats_.try_emplace(pf, outputSizes.begin(), outputSizes.end());
++	}
++
++	return !rawFormats_.empty() && !outputFormats_.empty();
++}
++
++void RCar4CameraData::updateControls()
++{
++	ControlInfoMap::Map controls{
++		ipaControls_.begin(), ipaControls_.end()
++	};
++
++	controlInfo_ = { std::move(controls), controls::controls };
++}
++
++/*
++ * \todo This should obviously be common code.
++ *
++ * CameraSensor::getFormat() is not adequate as it cannot take
++ * specific requirements along a pipeline into account.
++ */
++std::tuple<PixelFormat, unsigned int, Size>
++RCar4CameraData::findSensorFormat(PixelFormat targetFormat, Size targetSize,
++				  Transform transform) const
++{
++	struct {
++		unsigned int mbusCode;
++		PixelFormat pf;
++		Size size;
++		unsigned bpp;
++		uint64_t areaDiff = -1;
++	} best = {};
++
++	const auto targetArea = uint64_t(targetSize.width) * targetSize.height;
++
++	for (const auto &[mbusCode, sizes] : rawFormats_) {
++		ASSERT(!sizes.empty());
++
++		auto bayerFormat = BayerFormat::fromMbusCode(mbusCode);
++		ASSERT(bayerFormat.isValid());
++		bayerFormat.order = vin_.sensor()->bayerOrder(transform);
++
++		auto pf = bayerFormat.toPixelFormat();
++		ASSERT(pf.isValid());
++
++		const auto &info = PixelFormatInfo::info(pf);
++
++		for (const Size &size : sizes) {
++			const auto area = uint64_t(size.width) * size.height;
++			const auto areaDiff = utils::abs_diff(targetArea, area);
++
++			if ((pf == targetFormat && best.pf != targetFormat) ||
++			    areaDiff < best.areaDiff ||
++			    (areaDiff == best.areaDiff && info.bitsPerPixel > best.bpp))
++				best = { mbusCode, pf, size, info.bitsPerPixel, areaDiff };
 +		}
 +
-+		pipe()->completeRequest(request);
-+		pendingRequests_.pop();
++		if (targetFormat.isValid() && best.pf == targetFormat)
++			break;
 +	}
++
++	LOG(RCar4, Debug)
++		<< "format: " << best.pf << ", "
++		<< "size: " << best.size;
++
++	/*
++	 * The un-transformed mbus code is returned as it is expected
++	 * that the sensor driver handles that correctly.
++	 */
++
++	return { best.pf, best.mbusCode, best.size };
 +}
 +
 +void RCar4CameraData::vinBufferReady(FrameBuffer *buffer)
@@ -910,20 +1106,15 @@ index 00000000..74423dbc
 +
 +	/* If the buffer is cancelled force a complete of the whole request. */
 +	if (buffer->metadata().status == FrameMetadata::FrameCancelled) {
-+		for (auto it : request->buffers()) {
-+			FrameBuffer *b = it.second;
-+			b->_d()->cancel();
-+			pipe()->completeBuffer(request, b);
-+		}
-+
 +		frames_.remove(info);
++		request->_d()->cancel();
 +		pipe()->completeRequest(request);
 +		return;
 +	}
 +
 +	/* Record the sensor's timestamp in the request metadata. */
-+	request->metadata().set(controls::SensorTimestamp,
-+				buffer->metadata().timestamp);
++	request->_d()->metadata().set(controls::SensorTimestamp,
++				      buffer->metadata().timestamp);
 +
 +	ipa_->computeParams(info->frame, info->paramBuffer->cookie());
 +}
@@ -991,7 +1182,7 @@ index 00000000..74423dbc
 +	if (request->findBuffer(&frames_.outputStream_))
 +		pipe()->completeBuffer(request, buffer);
 +
-+	request->metadata().set(controls::draft::PipelineDepth, 3);
++	request->_d()->metadata().set(controls::draft::PipelineDepth, 3);
 +
 +	info->outputDequeued = true;
 +
@@ -1027,7 +1218,7 @@ index 00000000..74423dbc
 +
 +	Request *request = info->request;
 +
-+	info->request->metadata().merge(metadata);
++	info->request->_d()->metadata().merge(metadata);
 +	info->metadataProcessed = true;
 +
 +	if (frames_.tryComplete(info))
@@ -1038,39 +1229,42 @@ index 00000000..74423dbc
 + * Camera Configuration
 + */
 +
-+class RCar4CameraConfiguration : public CameraConfiguration
++class RCar4CameraConfiguration final : public CameraConfiguration
 +{
 +public:
-+	RCar4CameraConfiguration(Camera *camera, RCar4CameraData *data);
++	RCar4CameraConfiguration(RCar4CameraData *data);
 +
 +	Status validate() override;
 +
 +	const V4L2SubdeviceFormat &sensorFormat() { return sensorFormat_; }
 +	const Transform &combinedTransform() { return combinedTransform_; }
 +	const PixelFormat &ispOutputFormat() { return ispOutputFormat_; }
++
 +private:
-+	std::shared_ptr<Camera> camera_;
-+	RCar4CameraData *data_;
++	std::shared_ptr<RCar4CameraData> data_;
 +
 +	V4L2SubdeviceFormat sensorFormat_;
 +	Transform combinedTransform_;
 +	PixelFormat ispOutputFormat_;
 +};
 +
-+RCar4CameraConfiguration::RCar4CameraConfiguration(Camera *camera,
-+						   RCar4CameraData *data)
-+	: CameraConfiguration(), camera_(camera->shared_from_this()), data_(data)
++RCar4CameraConfiguration::RCar4CameraConfiguration(RCar4CameraData *data)
++	: CameraConfiguration(), data_(data->_o<Camera>()->shared_from_this(), data)
 +{
 +}
 +
 +CameraConfiguration::Status RCar4CameraConfiguration::validate()
 +{
-+	Status status;
-+
 +	if (config_.empty())
 +		return Invalid;
 +
-+	status = validateColorSpaces(ColorSpaceFlag::StreamsShareColorSpace);
++	if (sensorConfig) {
++		LOG(RCar4, Error)
++			<< "Setting sensor configuration is not implemented";
++		return Invalid;
++	}
++
++	Status status = validateColorSpaces(ColorSpaceFlag::StreamsShareColorSpace);
 +
 +	/* Cap the number of entries to the available streams. */
 +	if (config_.size() > 2) {
@@ -1083,79 +1277,107 @@ index 00000000..74423dbc
 +	if (orientation != requestedOrientation)
 +		status = Adjusted;
 +
-+	/* Figure out the VIN configuration based on the first stream size. */
-+	StreamConfiguration vinCfg = data_->vin_.generateConfiguration(config_.at(0).size);
++	StreamConfiguration *rawCfg = nullptr;
++	StreamConfiguration *processedCfg = nullptr;
 +
-+	/* Default ISP output format. */
-+	ispOutputFormat_ = formats::XRGB8888;
-+
-+	/*
-+	 * Validate there are at max two streams, one output and one RAW. The
-+	 * size of two streams must match each other and the sensor output as we
-+	 * have no scaler.
-+	 */
-+	unsigned int outputStreams = 0;
-+	unsigned int rawStreams = 0;
-+	for (unsigned int i = 0; i < config_.size(); i++) {
++	for (size_t i = 0; i < config_.size(); i++) {
 +		StreamConfiguration &cfg = config_.at(i);
-+		StreamConfiguration newCfg = {};
-+		const StreamConfiguration originalCfg = cfg;
 +		const PixelFormatInfo &info = PixelFormatInfo::info(cfg.pixelFormat);
 +
-+		LOG(RCar4, Debug) << "Validating stream: " << cfg.toString();
-+
 +		if (info.colourEncoding == PixelFormatInfo::ColourEncodingRAW) {
-+			if (rawStreams++) {
++			if (rawCfg) {
 +				LOG(RCar4, Error)
-+					<< "Camera configuration support only one RAW stream";
++					<< "Camera configuration supports only one RAW stream";
 +				return Invalid;
 +			}
 +
-+			newCfg = vinCfg;
-+
-+			cfg.setStream(&data_->frames_.rawStream_);
-+			LOG(RCar4, Debug) << "Assigned " << newCfg.toString()
-+					  << " to the raw stream";
++			rawCfg = &cfg;
 +		} else {
-+			if (outputStreams++) {
++			if (processedCfg) {
 +				LOG(RCar4, Error)
-+					<< "Camera configuration support only one output stream";
++					<< "Camera configuration supports only one processed stream";
 +				return Invalid;
 +			}
 +
-+			newCfg = data_->isp_.generateConfiguration(cfg.pixelFormat, vinCfg.size);
-+			ispOutputFormat_ = newCfg.pixelFormat;
-+
-+			cfg.setStream(&data_->frames_.outputStream_);
-+			LOG(RCar4, Debug) << "Assigned " << newCfg.toString()
-+					  << " to the output stream";
++			processedCfg = &cfg;
 +		}
 +
-+		cfg.size = newCfg.size;
-+		cfg.bufferCount = newCfg.bufferCount;
-+		cfg.pixelFormat = newCfg.pixelFormat;
-+		cfg.stride = newCfg.stride;
-+		cfg.frameSize = newCfg.frameSize;
-+
-+		if (!cfg.pixelFormat.isValid()) {
-+			LOG(RCar4, Error)
-+				<< "Stream " << i << " can not generate cfg";
-+			return Invalid;
-+		}
-+
-+		if (cfg.pixelFormat != originalCfg.pixelFormat ||
-+		    cfg.size != originalCfg.size) {
-+			LOG(RCar4, Debug)
-+				<< "Stream " << i << " configuration adjusted to "
-+				<< cfg.toString();
++		if (cfg.bufferCount == 0) {
++			cfg.bufferCount = kDefaultBufferCount;
 +			status = Adjusted;
 +		}
 +	}
 +
-+	/* Select the sensor format. */
-+	std::vector<unsigned int> mbusCodes = { formatToMediaBus.at(vinCfg.pixelFormat) };
-+	sensorFormat_ =
-+		data_->vin_.sensor()->getFormat(mbusCodes, vinCfg.size, vinCfg.size);
++	ASSERT(rawCfg || processedCfg);
++
++	auto [sensorFormat, sensorCode, sensorSize] = data_->findSensorFormat(
++		rawCfg ? rawCfg->pixelFormat : PixelFormat{},
++		rawCfg ? rawCfg->size : processedCfg->size,
++		combinedTransform_);
++
++	V4L2DeviceFormat vinFormat = {};
++	const auto vinPf = data_->vin_.output()->toV4L2PixelFormat(sensorFormat);
++	vinFormat.fourcc = vinPf;
++	vinFormat.size = sensorSize;
++
++	if (data_->vin_.output()->tryFormat(&vinFormat))
++		return Invalid;
++
++	/* The format is expected to be accepted without adjustments. */
++	if (vinFormat.fourcc != vinPf || vinFormat.size != sensorSize)
++		return Invalid;
++
++	ispOutputFormat_ = data_->outputFormats_.begin()->first;
++	sensorFormat_ = {
++		.code = sensorCode,
++		.size = sensorSize,
++		.colorSpace = ColorSpace::Raw,
++	};
++
++	if (rawCfg) {
++		if (rawCfg->pixelFormat != sensorFormat)
++			status = Adjusted;
++		if (rawCfg->size != sensorSize)
++			status = Adjusted;
++
++		rawCfg->pixelFormat = sensorFormat;
++		rawCfg->size = vinFormat.size;
++		rawCfg->stride = vinFormat.planes[0].bpl;
++		rawCfg->frameSize = vinFormat.planes[0].size;
++		rawCfg->colorSpace = vinFormat.colorSpace;
++		rawCfg->setStream(&data_->frames_.rawStream_);
++	}
++
++	if (processedCfg) {
++		V4L2DeviceFormat ispFormat = {};
++		ispFormat.fourcc = data_->isp_.output_->toV4L2PixelFormat(
++			processedCfg->pixelFormat);
++		ispFormat.size = sensorSize;
++
++		if (data_->isp_.output_->tryFormat(&ispFormat))
++			return Invalid;
++
++		auto pf = ispFormat.fourcc.toPixelFormat();
++		if (!pf.isValid())
++			return Invalid;
++
++		if (ispFormat.size != vinFormat.size)
++			return Invalid;
++
++		if (processedCfg->pixelFormat != pf)
++			status = Adjusted;
++		if (processedCfg->size != ispFormat.size)
++			status = Adjusted;
++
++		processedCfg->pixelFormat = pf;
++		processedCfg->size = ispFormat.size;
++		processedCfg->stride = ispFormat.planes[0].bpl;
++		processedCfg->frameSize = ispFormat.planes[0].size;
++		processedCfg->colorSpace = ispFormat.colorSpace;
++		processedCfg->setStream(&data_->frames_.outputStream_);
++
++		ispOutputFormat_ = processedCfg->pixelFormat;
++	}
 +
 +	return status;
 +}
@@ -1164,13 +1386,13 @@ index 00000000..74423dbc
 + * Pipeline Handler
 + */
 +
-+class PipelineHandlerRCar4 : public PipelineHandler
++class PipelineHandlerRCar4 final : public PipelineHandler
 +{
 +public:
 +	PipelineHandlerRCar4(CameraManager *manager);
 +
 +	std::unique_ptr<CameraConfiguration> generateConfiguration(Camera *camera,
-+								   Span<const StreamRole> roles) override;
++								   std::span<const StreamRole> roles) override;
 +	int configure(Camera *camera, CameraConfiguration *config) override;
 +
 +	int exportFrameBuffers(Camera *camera, Stream *stream,
@@ -1183,138 +1405,71 @@ index 00000000..74423dbc
 +
 +	bool match(DeviceEnumerator *enumerator) override;
 +
-+	int updateControls(RCar4CameraData *data);
-+
 +private:
 +	RCar4CameraData *cameraData(Camera *camera)
 +	{
 +		return static_cast<RCar4CameraData *>(camera->_d());
 +	}
 +
-+	int createCamera(MediaDevice *mdev, const std::string &pipeId);
-+
-+	StreamConfiguration generateStreamConfiguration(RCar4CameraData *data,
-+							StreamRole role);
++	int createCamera(const MediaDevice *mdev, const std::string &pipeId);
 +};
 +
 +PipelineHandlerRCar4::PipelineHandlerRCar4(CameraManager *manager)
-+	: PipelineHandler(manager)
++	: PipelineHandler(manager, kMaxRequests)
 +{
-+}
-+
-+StreamConfiguration
-+PipelineHandlerRCar4::generateStreamConfiguration(RCar4CameraData *data,
-+						  StreamRole role)
-+{
-+	const std::vector<unsigned int> &mbusCodes = data->vin_.sensor()->mbusCodes();
-+
-+	/* Create the list of supported RAW stream formats. */
-+	std::map<PixelFormat, std::vector<SizeRange>> rawFormats;
-+	unsigned int rawBitsPerPixel = 0;
-+	PixelFormat rawFormat;
-+	Size rawSize = { 0, 0 };
-+	std::vector<SizeRange> rawSizes;
-+
-+	for (const auto &format : data->vin_.formats()) {
-+		const PixelFormatInfo &info = PixelFormatInfo::info(format);
-+
-+		/* Populate stream formats for RAW configurations. */
-+		uint32_t mbusCode = formatToMediaBus.at(format);
-+
-+		/* Skip formats not supported by sensor. */
-+		if (std::find(mbusCodes.begin(), mbusCodes.end(), mbusCode) == mbusCodes.end())
-+			continue;
-+
-+		/* Add all the RAW sizes the sensor can produce for this code. */
-+		for (const auto &rawSizeByCode : data->vin_.sensor()->sizes(mbusCode)) {
-+			if (rawSizeByCode.width > MaxResolution.width ||
-+			    rawSizeByCode.height > MaxResolution.height)
-+				continue;
-+
-+			rawSizes.push_back({ rawSizeByCode, rawSizeByCode });
-+
-+			rawFormats[format].push_back({ rawSizeByCode, rawSizeByCode });
-+
-+			/* Cache for later default format. */
-+			if (info.bitsPerPixel >= rawBitsPerPixel) {
-+				rawBitsPerPixel = info.bitsPerPixel;
-+				rawFormat = format;
-+
-+				if (rawSizeByCode > rawSize)
-+					rawSize = rawSizeByCode;
-+			}
-+		}
-+	}
-+
-+	/* If generating for RAW role we are done. */
-+	if (role == StreamRole::Raw) {
-+		StreamFormats rawStreamFormats(rawFormats);
-+		StreamConfiguration rawCfg(rawStreamFormats);
-+		rawCfg.pixelFormat = rawFormat;
-+		rawCfg.size = rawSize;
-+		rawCfg.bufferCount = nBuffers;
-+
-+		return rawCfg;
-+	}
-+
-+	/* Create the list of supported other stream formats. */
-+	std::map<PixelFormat, std::vector<SizeRange>> outputFormats;
-+	std::vector<SizeRange> outputSizes(rawSizes.begin(), rawSizes.end());
-+
-+	for (const auto &format : data->isp_.formats()) {
-+		const PixelFormatInfo &info = PixelFormatInfo::info(format);
-+
-+		/* Skip RAW formats. */
-+		if (info.colourEncoding == PixelFormatInfo::ColourEncodingRAW)
-+			continue;
-+
-+		outputFormats[format] = { outputSizes };
-+	}
-+
-+	StreamFormats outputStreamFormats(outputFormats);
-+	StreamConfiguration outputCfg(outputStreamFormats);
-+	outputCfg.pixelFormat = formats::XRGB8888;
-+	outputCfg.size = rawSize;
-+
-+	return outputCfg;
 +}
 +
 +std::unique_ptr<CameraConfiguration>
 +PipelineHandlerRCar4::generateConfiguration(Camera *camera,
-+					    Span<const StreamRole> roles)
++					    std::span<const StreamRole> roles)
 +{
 +	RCar4CameraData *data = cameraData(camera);
-+
-+	std::unique_ptr<CameraConfiguration> config =
-+		std::make_unique<RCar4CameraConfiguration>(camera, data);
++	auto config = std::make_unique<RCar4CameraConfiguration>(data);
 +
 +	if (roles.empty())
 +		return config;
 +
++	auto [sensorFormat, sensorCode, sensorSize] = data->findSensorFormat(
++		{}, { -1u, -1u }, Transform::Identity);
++
 +	for (const StreamRole role : roles) {
++		std::map<PixelFormat, std::vector<SizeRange>> formats;
 +		std::optional<ColorSpace> colorSpace;
++		PixelFormat pixelFormat;
 +
 +		switch (role) {
 +		case StreamRole::Raw:
++			for (const auto &[mbusCode, sizes] : data->rawFormats_) {
++				auto pf = BayerFormat::fromMbusCode(mbusCode).toPixelFormat();
++				ASSERT(pf.isValid());
++				formats.try_emplace(pf, sizes.begin(), sizes.end());
++			}
++
++			pixelFormat = sensorFormat;
 +			colorSpace = ColorSpace::Raw;
 +			break;
-+		default:
++		default: {
++			for (const auto &[pf, sizes] : data->outputFormats_)
++				formats.try_emplace(pf, sizes.begin(), sizes.end());
++
++			pixelFormat = formats.begin()->first;
 +			colorSpace = ColorSpace::Rec709;
 +			break;
 +		}
++		}
 +
-+		StreamConfiguration cfg =
-+			generateStreamConfiguration(data, role);
-+		if (!cfg.pixelFormat.isValid())
-+			return nullptr;
++		ASSERT(!formats.empty());
++		StreamConfiguration cfg(StreamFormats{ formats });
 +
++		cfg.pixelFormat = pixelFormat;
++		cfg.size = sensorSize;
 +		cfg.colorSpace = colorSpace;
-+		cfg.bufferCount = nBuffers;
++
 +		config->addConfiguration(cfg);
 +	}
 +
 +	if (config->validate() == CameraConfiguration::Invalid)
-+		return nullptr;
++		return {};
 +
 +	return config;
 +}
@@ -1328,12 +1483,12 @@ index 00000000..74423dbc
 +	int ret;
 +
 +	/* Configure VIN and propagate format to ISP. */
-+	ret = data->vin_.configure(config->sensorFormat().size,
++	ret = data->vin_.configure(config->sensorFormat(),
 +				   config->combinedTransform(), &vinFormat);
 +	if (ret)
 +		return ret;
 +
-+	ret = data->isp_.configure(&vinFormat, config->ispOutputFormat());
++	ret = data->isp_.configure(vinFormat, config->ispOutputFormat());
 +	if (ret)
 +		return ret;
 +
@@ -1343,23 +1498,20 @@ index 00000000..74423dbc
 +	if (ret)
 +		return ret;
 +
-+	ipa::rkisp1::IPAConfigInfo ipaConfig{
-+		sensorInfo, data->vin_.sensor()->controls(),
-+		V4L2_META_FMT_RK_ISP1_EXT_PARAMS
++	ipa::rppx1::IPAConfigInfo ipaConfig{
++		std::move(sensorInfo),
++		data->vin_.sensor()->controls(),
 +	};
 +
-+	std::map<unsigned int, IPAStream> streamConfig;
-+	streamConfig[0] =
-+		IPAStream(PixelFormat(config->ispOutputFormat().fourcc()),
-+			  config->sensorFormat().size);
-+
-+	ret = data->ipa_->configure(ipaConfig, streamConfig, &data->ipaControls_);
++	ret = data->ipa_->configure(std::move(ipaConfig), &data->ipaControls_);
 +	if (ret) {
 +		LOG(RCar4, Error) << "failed configuring IPA (" << ret << ")";
 +		return ret;
 +	}
 +
-+	return updateControls(data);
++	data->updateControls();
++
++	return 0;
 +}
 +
 +int PipelineHandlerRCar4::exportFrameBuffers(Camera *camera, Stream *stream,
@@ -1380,43 +1532,38 @@ index 00000000..74423dbc
 +int PipelineHandlerRCar4::start(Camera *camera,
 +				[[maybe_unused]] const ControlList *controls)
 +{
++	utils::scope_exit stopGuard([&] { stop(camera); });
 +	RCar4CameraData *data = cameraData(camera);
-+	int ret;
 +
 +	data->delayedCtrls_->reset();
 +
-+	ret = data->frames_.start(&data->isp_, data->ipa_.get());
++	int ret = data->frames_.start(&data->isp_, data->ipa_.get(), kMaxRequests);
 +	if (ret)
-+		goto error;
++		return ret;
++
++	ret = data->vin_.start(kMaxRequests);
++	if (ret)
++		return ret;
++
++	ret = data->isp_.start(kMaxRequests);
++	if (ret)
++		return ret;
 +
 +	ret = data->ipa_->start();
 +	if (ret)
-+		goto error;
++		return ret;
 +
-+	ret = data->vin_.start();
-+	if (ret)
-+		goto error;
-+
-+	ret = data->isp_.start();
-+	if (ret)
-+		goto error;
-+
++	stopGuard.release();
 +	return 0;
-+error:
-+	stop(camera);
-+
-+	return ret;
 +}
 +
 +void PipelineHandlerRCar4::stopDevice(Camera *camera)
 +{
 +	RCar4CameraData *data = cameraData(camera);
 +
-+	data->cancelPendingRequests();
-+
++	data->ipa_->stop();
 +	data->isp_.stop();
 +	data->vin_.stop();
-+	data->ipa_->stop();
 +
 +	data->frames_.stop(&data->isp_, data->ipa_.get());
 +}
@@ -1425,128 +1572,38 @@ index 00000000..74423dbc
 +{
 +	RCar4CameraData *data = cameraData(camera);
 +
-+	data->pendingRequests_.push(request);
-+	data->queuePendingRequests();
++	RCar4Frames::Info *info = data->frames_.create(request);
++
++	/* Always expected to have buffers for `kMaxRequests` in-flight requests. */
++	ASSERT(info);
++
++	int ret = data->vin_.queueBuffer(info->inputBuffer);
++	if (ret) {
++		data->frames_.remove(info);
++		return ret;
++	}
++
++	data->ipa_->queueRequest(info->frame, request->controls());
 +
 +	return 0;
 +}
 +
-+int PipelineHandlerRCar4::updateControls(RCar4CameraData *data)
-+{
-+	ControlInfoMap::Map controls;
-+
-+	for (const auto &ipaControl : data->ipaControls_)
-+		controls[ipaControl.first] = ipaControl.second;
-+
-+	data->controlInfo_ = ControlInfoMap(std::move(controls),
-+					    controls::controls);
-+	return 0;
-+}
-+
-+int PipelineHandlerRCar4::createCamera(MediaDevice *mdev,
++int PipelineHandlerRCar4::createCamera(const MediaDevice *mdev,
 +				       const std::string &pipeId)
 +{
-+	std::unique_ptr<RCar4CameraData> data = std::make_unique<RCar4CameraData>(this);
-+	IPACameraSensorInfo sensorInfo{};
-+	int ret;
++	auto data = std::make_unique<RCar4CameraData>(this);
 +
-+	ret = data->vin_.init(mdev, pipeId);
++	int ret = data->init(mdev, pipeId);
 +	if (ret)
 +		return ret;
 +
-+	ret = data->isp_.init(mdev, pipeId);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * Load RkISP1 IPA for use with RCar4
-+	 */
-+	data->ipa_ = IPAManager::createIPA<ipa::rkisp1::IPAProxyRkISP1>(this, "rkisp1", 1, 1);
-+	if (!data->ipa_) {
-+		LOG(RCar4, Error) << "No IPA module found";
-+		return -ENOENT;
-+	}
-+
-+	/* The IPA tuning file is made from the sensor name. */
-+	std::string ipaTuningFile =
-+		data->ipa_->configurationFile(data->vin_.sensor()->model() + ".yaml", "uncalibrated.yaml");
-+
-+	ret = data->vin_.sensor()->sensorInfo(&sensorInfo);
-+	if (ret) {
-+		LOG(RCar4, Error) << "Camera sensor information not available";
-+		return ret;
-+	}
-+
-+	ret = data->ipa_->init({ ipaTuningFile, data->vin_.sensor()->model() },
-+			       libcamera::ipa::rkisp1::HwRevisionExternalRppX1,
-+			       0xfffff,
-+			       sensorInfo, data->vin_.sensor()->controls(), &data->ipaControls_);
-+	if (ret < 0) {
-+		LOG(RCar4, Error) << "IPA initialization failure";
-+		return ret;
-+	}
-+
-+	updateControls(data.get());
-+
-+	/*
-+	 * Initialize the camera properties.
-+	 */
-+	data->properties_ = data->vin_.sensor()->properties();
-+	const CameraSensorProperties::SensorDelays &delays = data->vin_.sensor()->sensorDelays();
-+	std::unordered_map<uint32_t, DelayedControls::ControlParams> params = {
-+		{ V4L2_CID_ANALOGUE_GAIN, { delays.gainDelay, false } },
-+		{ V4L2_CID_EXPOSURE, { delays.exposureDelay, false } },
-+		{ V4L2_CID_VBLANK, { delays.vblankDelay, false } },
-+	};
-+
-+	data->delayedCtrls_ =
-+		std::make_unique<DelayedControls>(data->vin_.sensor()->device(),
-+						  params);
-+
++	const std::string &id = data->vin_.sensor()->id();
 +	std::set<Stream *> streams{
 +		&data->frames_.rawStream_,
 +		&data->frames_.outputStream_,
 +	};
 +
-+	/*
-+	 * Connect signals to slots to drive the pipeline.
-+	 */
-+
-+	/* When internal buffers become available try to queue more jobs. */
-+	data->frames_.bufferAvailable.connect(data.get(),
-+					      &RCar4CameraData::queuePendingRequests);
-+
-+	/* Connect bufferReady for each video device to a handler. */
-+	data->vin_.bufferReady().connect(data.get(),
-+					 &RCar4CameraData::vinBufferReady);
-+	data->isp_.input_->bufferReady.connect(data.get(),
-+					       &RCar4CameraData::inputBufferReady);
-+	data->isp_.param_->bufferReady.connect(data.get(),
-+					       &RCar4CameraData::paramBufferReady);
-+	data->isp_.stat_->bufferReady.connect(data.get(),
-+					      &RCar4CameraData::statBufferReady);
-+	data->isp_.output_->bufferReady.connect(data.get(),
-+						&RCar4CameraData::outputBufferReady);
-+
-+	/* Connect IPA signals. */
-+	data->ipa_->setSensorControls.connect(data.get(),
-+					      &RCar4CameraData::setSensorControls);
-+	data->ipa_->paramsComputed.connect(data.get(),
-+					   &RCar4CameraData::paramsComputed);
-+	data->ipa_->metadataReady.connect(data.get(),
-+					  &RCar4CameraData::metadataReady);
-+
-+	/* Apply controls at start at exposure. */
-+	data->vin_.frameStart().connect(data->delayedCtrls_.get(),
-+					&DelayedControls::applyControls);
-+
-+	/*
-+	 * Register the camera.
-+	 */
-+	const std::string &id = data->vin_.sensor()->id();
-+	std::shared_ptr<Camera> camera = Camera::create(std::move(data), id, streams);
-+
-+	registerCamera(std::move(camera));
++	registerCamera(Camera::create(std::move(data), id, streams));
 +
 +	return 0;
 +}
@@ -1555,23 +1612,28 @@ index 00000000..74423dbc
 +{
 +	DeviceMatch dm("rcar_vin");
 +
-+	MediaDevice *media = acquireMediaDevice(enumerator, dm);
++	auto media = acquireMediaDevice(enumerator, dm);
 +	if (!media)
 +		return false;
 +
 +	bool registered = false;
 +	for (const MediaEntity *entity : media->entities()) {
-+		if (entity->name().substr(0, 8) == "rcar_isp" &&
-+		    entity->name().rfind("core") != std::string::npos) {
-+			/*
-+			 * Isolate the unit address that identifies one ISP
-+			 * instance. pipeId will look like
-+			 * 'rcar_isp fed00000.isp'.
-+			 */
-+			std::string pipeId = entity->name().substr(0, 21);
-+			if (!createCamera(media, pipeId))
-+				registered = true;
-+		}
++		if (!entity->name().starts_with("rcar_isp"))
++			continue;
++		if (entity->name().rfind("core") == std::string::npos)
++			continue;
++
++		/*
++		 * Isolate the unit address that identifies one ISP
++		 * instance. pipeId will look like
++		 * 'rcar_isp fed00000.isp'.
++		 */
++		constexpr size_t prefix =
++			std::string_view("rcar_isp fed00000.isp").length();
++
++		std::string pipeId = entity->name().substr(0, prefix);
++		if (!createCamera(media.get(), pipeId))
++			registered = true;
 +	}
 +
 +	return registered;
@@ -1582,10 +1644,10 @@ index 00000000..74423dbc
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/vin.cpp b/src/libcamera/pipeline/rcar-gen4/vin.cpp
 new file mode 100644
-index 00000000..76b94a43
+index 000000000..23ccb3ff0
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/vin.cpp
-@@ -0,0 +1,391 @@
+@@ -0,0 +1,173 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -1596,93 +1658,23 @@ index 00000000..76b94a43
 +
 +#include "vin.h"
 +
-+#include <cmath>
-+#include <limits>
-+
 +#include <linux/media-bus-format.h>
++
++#include <libcamera/base/utils.h>
 +
 +#include <libcamera/formats.h>
 +#include <libcamera/geometry.h>
 +#include <libcamera/stream.h>
 +#include <libcamera/transform.h>
 +
++#include "libcamera/internal/bayer_format.h"
 +#include "libcamera/internal/camera_sensor.h"
-+#include "libcamera/internal/framebuffer.h"
 +#include "libcamera/internal/media_device.h"
 +#include "libcamera/internal/v4l2_subdevice.h"
 +
 +namespace libcamera {
 +
 +LOG_DECLARE_CATEGORY(RCar4)
-+
-+namespace {
-+
-+const std::map<uint32_t, PixelFormat> mbusCodesToPixelFormat = {
-+	{ MEDIA_BUS_FMT_SBGGR10_1X10, formats::SBGGR10 },
-+	{ MEDIA_BUS_FMT_SGBRG10_1X10, formats::SGBRG10 },
-+	{ MEDIA_BUS_FMT_SGRBG10_1X10, formats::SGRBG10 },
-+	{ MEDIA_BUS_FMT_SRGGB10_1X10, formats::SRGGB10 },
-+};
-+
-+} /* namespace */
-+
-+/**
-+ * \brief Retrieve the list of supported PixelFormats
-+ *
-+ * Retrieve the list of supported pixel formats by matching the sensor produced
-+ * media bus codes with the formats supported by the VIN unit.
-+ *
-+ * \return The list of supported PixelFormat
-+ */
-+std::vector<PixelFormat> RCarVINDevice::formats() const
-+{
-+	if (!sensor_)
-+		return {};
-+
-+	std::vector<PixelFormat> formats;
-+	for (unsigned int code : sensor_->mbusCodes()) {
-+		auto it = mbusCodesToPixelFormat.find(code);
-+		if (it != mbusCodesToPixelFormat.end())
-+			formats.push_back(it->second);
-+	}
-+
-+	return formats;
-+}
-+
-+/**
-+ * \brief Retrieve the list of supported size ranges
-+ * \param[in] format The pixel format
-+ *
-+ * Retrieve the list of supported sizes for a particular \a format by matching
-+ * the sensor produced media bus codes formats supported by the VIN unit.
-+ *
-+ * \return A list of supported sizes for the \a format or an empty list
-+ * otherwise
-+ */
-+std::vector<SizeRange> RCarVINDevice::sizes(const PixelFormat &format) const
-+{
-+	int mbusCode = -1;
-+
-+	if (!sensor_)
-+		return {};
-+
-+	std::vector<SizeRange> sizes;
-+	for (const auto &iter : mbusCodesToPixelFormat) {
-+		if (iter.second != format)
-+			continue;
-+
-+		mbusCode = iter.first;
-+		break;
-+	}
-+
-+	if (mbusCode == -1)
-+		return {};
-+
-+	for (const Size &sz : sensor_->sizes(mbusCode))
-+		sizes.emplace_back(sz);
-+
-+	return sizes;
-+}
 +
 +int RCarVINDevice::init(const MediaDevice *media, const std::string &pipeId)
 +{
@@ -1716,20 +1708,6 @@ index 00000000..76b94a43
 +		return -EINVAL;
 +	}
 +
-+	/*
-+	 * Make sure the sensor produces at least one format compatible with
-+	 * the VIN requirements.
-+	 */
-+	std::vector<unsigned int> vinCodes = utils::map_keys(mbusCodesToPixelFormat);
-+	const std::vector<unsigned int> &sensorCodes = sensor_->mbusCodes();
-+	if (!utils::set_overlap(sensorCodes.begin(), sensorCodes.end(),
-+				vinCodes.begin(), vinCodes.end())) {
-+		LOG(RCar4, Error)
-+			<< "Sensor " << sensor_->entity()->name()
-+			<< " has not format compatible with the VIN";
-+		return -EINVAL;
-+	}
-+
 +	/* Use the Channel Selector links to find VIN. */
 +	entity = csisp_->entity();
 +	pad = entity->getPadByIndex(1);
@@ -1756,15 +1734,13 @@ index 00000000..76b94a43
 +	return 0;
 +}
 +
-+int RCarVINDevice::configure(const Size &size, const Transform &transform,
++int RCarVINDevice::configure(const V4L2SubdeviceFormat &format, Transform transform,
 +			     V4L2DeviceFormat *outputFormat)
 +{
-+	V4L2SubdeviceFormat sensorFormat;
++	auto sensorFormat = format;
 +	int ret;
 +
 +	/* Configure sensor */
-+	std::vector<unsigned int> mbusCodes = utils::map_keys(mbusCodesToPixelFormat);
-+	sensorFormat = getSensorFormat(mbusCodes, size);
 +	ret = sensor_->setFormat(&sensorFormat, transform);
 +	if (ret)
 +		return ret;
@@ -1774,190 +1750,63 @@ index 00000000..76b94a43
 +	if (ret)
 +		return ret;
 +
-+	if (mbusCodesToPixelFormat.find(sensorFormat.code) == mbusCodesToPixelFormat.end())
-+		return -EINVAL;
-+
 +	/* Configure Channel selector. */
 +	ret = csisp_->setFormat(0, &sensorFormat);
 +	if (ret)
 +		return ret;
 +
-+	if (mbusCodesToPixelFormat.find(sensorFormat.code) == mbusCodesToPixelFormat.end())
-+		return -EINVAL;
++	auto bayerFormat = BayerFormat::fromMbusCode(sensorFormat.code);
++	if (!bayerFormat.isValid())
++		return -ENOTSUP;
++
++	/* Transform already applied to format by `CameraSensor::setFormat()`. */
++	auto v4pf = bayerFormat.toV4L2PixelFormat();
 +
 +	/* Configure VIN */
-+	const auto &itInfo = mbusCodesToPixelFormat.find(sensorFormat.code);
-+	outputFormat->fourcc = output_->toV4L2PixelFormat(itInfo->second);
++	outputFormat->fourcc = v4pf;
 +	outputFormat->size = sensorFormat.size;
 +	outputFormat->planesCount = 1;
++	outputFormat->colorSpace = sensorFormat.colorSpace;
 +
 +	ret = output_->setFormat(outputFormat);
 +	if (ret)
 +		return ret;
 +
-+	LOG(RCar4, Debug) << "VIN output format " << *outputFormat;
++	LOG(RCar4, Debug)
++		<< "sensor: " << sensorFormat << ", "
++		<< "VIN: " << *outputFormat;
++
++	if (outputFormat->size != format.size || outputFormat->fourcc != v4pf)
++		return -EINVAL;
 +
 +	return 0;
 +}
 +
-+StreamConfiguration RCarVINDevice::generateConfiguration(Size size) const
-+{
-+	StreamConfiguration cfg;
-+
-+	/* If no desired size use the sensor resolution. */
-+	if (size.isNull())
-+		size = sensor_->resolution();
-+
-+	/* Query the sensor static information for closest match. */
-+	std::vector<unsigned int> mbusCodes = utils::map_keys(mbusCodesToPixelFormat);
-+	V4L2SubdeviceFormat sensorFormat = getSensorFormat(mbusCodes, size);
-+	if (!sensorFormat.code) {
-+		LOG(RCar4, Error) << "Sensor does not support mbus code";
-+		return {};
-+	}
-+
-+	cfg.size = sensorFormat.size;
-+	cfg.pixelFormat = mbusCodesToPixelFormat.at(sensorFormat.code);
-+	cfg.bufferCount = kBufferCount;
-+
-+	/* Get stride and frame size from device. */
-+	V4L2DeviceFormat fmt;
-+	fmt.fourcc = output_->toV4L2PixelFormat(cfg.pixelFormat);
-+	fmt.size = cfg.size;
-+
-+	int ret = output_->tryFormat(&fmt);
-+	if (ret)
-+		return {};
-+
-+	cfg.stride = fmt.planes[0].bpl;
-+	cfg.frameSize = fmt.planes[0].size;
-+
-+	return cfg;
-+}
-+
-+/**
-+ * \brief Retrieve the best sensor format for a desired output
-+ * \param[in] mbusCodes The list of acceptable media bus codes
-+ * \param[in] size The desired size
-+ *
-+ * Media bus codes are selected from \a mbusCodes, which lists all acceptable
-+ * codes in decreasing order of preference. Media bus codes supported by the
-+ * sensor but not listed in \a mbusCodes are ignored. If none of the desired
-+ * codes is supported, it returns an error.
-+ *
-+ * \a size indicates the desired size at the output of the sensor. This method
-+ * selects the best media bus code and size supported by the sensor according
-+ * to the following criteria.
-+ *
-+ * - The desired \a size shall fit in the sensor output size to avoid the need
-+ *   to up-scale.
-+ * - The aspect ratio of sensor output size shall be as close as possible to
-+ *   the sensor's native resolution field of view.
-+ * - The sensor output size shall be as small as possible to lower the required
-+ *   bandwidth.
-+ * - The desired \a size shall be supported by one of the media bus code listed
-+ *   in \a mbusCodes.
-+ *
-+ * When multiple media bus codes can produce the same size, the code at the
-+ * lowest position in \a mbusCodes is selected.
-+ *
-+ * The returned sensor output format is guaranteed to be acceptable by the
-+ * setFormat() method without any modification.
-+ *
-+ * \return The best sensor output format matching the desired media bus codes
-+ * and size on success, or an empty format otherwise.
-+ */
-+V4L2SubdeviceFormat RCarVINDevice::getSensorFormat(const std::vector<unsigned int> &mbusCodes,
-+						   const Size &size) const
-+{
-+	unsigned int desiredArea = size.width * size.height;
-+	unsigned int bestArea = std::numeric_limits<unsigned int>::max();
-+	const Size &resolution = sensor_->resolution();
-+	float desiredRatio = static_cast<float>(resolution.width) /
-+			     resolution.height;
-+	float bestRatio = std::numeric_limits<float>::max();
-+	Size bestSize;
-+	uint32_t bestCode = 0;
-+
-+	for (unsigned int code : mbusCodes) {
-+		const auto sizes = sensor_->sizes(code);
-+		if (!sizes.size())
-+			continue;
-+
-+		for (const Size &sz : sizes) {
-+			/* No need to check ratios if we have an exact match. */
-+			if (sz == size) {
-+				bestRatio = 0;
-+				bestArea = 0;
-+				bestSize = sz;
-+				bestCode = code;
-+				break;
-+			}
-+
-+			if (sz.width < size.width || sz.height < size.height)
-+				continue;
-+
-+			float ratio = static_cast<float>(sz.width) / sz.height;
-+			/*
-+			 * Ratios can differ by small mantissa difference which
-+			 * can affect the selection of the sensor output size
-+			 * wildly. We are interested in selection of the closest
-+			 * size with respect to the desired output size, hence
-+			 * comparing it with a single precision digit is enough.
-+			 */
-+			ratio = static_cast<unsigned int>(ratio * 10) / 10.0;
-+			float ratioDiff = std::abs(ratio - desiredRatio);
-+			unsigned int area = sz.width * sz.height;
-+			unsigned int areaDiff = area - desiredArea;
-+
-+			if (ratioDiff > bestRatio)
-+				continue;
-+
-+			if (ratioDiff < bestRatio || areaDiff < bestArea) {
-+				bestRatio = ratioDiff;
-+				bestArea = areaDiff;
-+				bestSize = sz;
-+				bestCode = code;
-+			}
-+		}
-+	}
-+
-+	if (bestSize.isNull()) {
-+		LOG(RCar4, Debug) << "No supported format or size found";
-+		return {};
-+	}
-+
-+	V4L2SubdeviceFormat format{};
-+	format.code = bestCode;
-+	format.size = bestSize;
-+
-+	return format;
-+}
-+
-+int RCarVINDevice::start()
++int RCarVINDevice::start(unsigned int bufferCount)
 +{
 +	int ret;
 +
-+	ret = output_->importBuffers(kBufferCount);
++	ret = output_->importBuffers(bufferCount);
 +	if (ret) {
 +		LOG(RCar4, Error) << "Failed to import VIN buffers";
 +		return ret;
 +	}
 +
++	utils::scope_exit stopGuard([&] { stop(); });
++
 +	ret = output_->streamOn();
 +	if (ret) {
 +		LOG(RCar4, Error) << "Failed to start VIN";
-+		stop();
 +		return ret;
 +	}
 +
 +	ret = output_->setFrameStartEnabled(true);
 +	if (ret) {
 +		LOG(RCar4, Error) << "Failed to enable Frame Start";
-+		stop();
 +		return ret;
 +	}
 +
++	stopGuard.release();
 +	return 0;
 +}
 +
@@ -1971,18 +1820,13 @@ index 00000000..76b94a43
 +		LOG(RCar4, Error) << "Failed to release VIN buffers";
 +}
 +
-+int RCarVINDevice::queueBuffer(FrameBuffer *buffer)
-+{
-+	return output_->queueBuffer(buffer);
-+}
-+
 +} /* namespace libcamera */
 diff --git a/src/libcamera/pipeline/rcar-gen4/vin.h b/src/libcamera/pipeline/rcar-gen4/vin.h
 new file mode 100644
-index 00000000..5ac97be0
+index 000000000..6fd2dcfa6
 --- /dev/null
 +++ b/src/libcamera/pipeline/rcar-gen4/vin.h
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,60 @@
 +/* SPDX-License-Identifier: LGPL-2.1-or-later */
 +/*
 + * Copyright 2025 Renesas Electronics Co
@@ -1994,8 +1838,6 @@ index 00000000..5ac97be0
 +#pragma once
 +
 +#include <memory>
-+#include <queue>
-+#include <vector>
 +
 +#include <libcamera/base/signal.h>
 +
@@ -2017,31 +1859,27 @@ index 00000000..5ac97be0
 +class RCarVINDevice
 +{
 +public:
-+	static constexpr unsigned int kBufferCount = 4;
-+
-+	std::vector<PixelFormat> formats() const;
-+	std::vector<SizeRange> sizes(const PixelFormat &format) const;
-+
 +	int init(const MediaDevice *media, const std::string &pipeId);
-+	int configure(const Size &size, const Transform &transform,
++	int configure(const V4L2SubdeviceFormat &format, Transform transform,
 +		      V4L2DeviceFormat *outputFormat);
 +
-+	StreamConfiguration generateConfiguration(Size size) const;
-+
-+	int start();
++	int start(unsigned int bufferCount);
 +	void stop();
 +
 +	CameraSensor *sensor() { return sensor_.get(); }
 +	const CameraSensor *sensor() const { return sensor_.get(); }
++	V4L2VideoDevice *output() { return output_.get(); }
++	const V4L2VideoDevice *output() const { return output_.get(); }
 +
-+	int queueBuffer(FrameBuffer *buffer);
++	int queueBuffer(FrameBuffer *buffer)
++	{
++		return output_->queueBuffer(buffer);
++	}
 +
 +	Signal<FrameBuffer *> &bufferReady() { return output_->bufferReady; }
 +	Signal<uint32_t> &frameStart() { return output_->frameStart; }
-+private:
-+	V4L2SubdeviceFormat getSensorFormat(const std::vector<unsigned int> &mbusCodes,
-+					    const Size &size) const;
 +
++private:
 +	std::unique_ptr<CameraSensor> sensor_;
 +	std::unique_ptr<V4L2Subdevice> csi2_;
 +	std::unique_ptr<V4L2Subdevice> csisp_;
@@ -2050,5 +1888,5 @@ index 00000000..5ac97be0
 +
 +} /* namespace libcamera */
 -- 
-2.25.1
+2.43.0
 
