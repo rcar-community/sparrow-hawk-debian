@@ -169,7 +169,7 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}
           ./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13
-          #./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13 --desktop xfce
+          ./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13 --desktop xfce
           #./build_image/build_debian_image/build_with_docker_sparrow-hawk.sh 13 --desktop gnome
 
       - name: Build debian image (cloud-init)
