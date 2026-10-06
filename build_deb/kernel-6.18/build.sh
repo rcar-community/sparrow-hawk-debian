@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 RAW_VERSION=${1:-6.18.54-2026-09-28}
@@ -8,14 +8,14 @@ PKG=sparrow-hawk-kernel-6.18
 DEFCONFIG_NAME=sparrow_hawk_defconfig
 
 cd ${SCRIPT_DIR}
-git clone https://github.com/rcar-community/linux.git -b ${BRANCH} --depth 1
+[[ -d linux ]] || git clone https://github.com/rcar-community/linux.git -b ${BRANCH} --depth 1
 cd linux
 git fetch origin ${BRANCH} --depth 1
 git archive origin/${BRANCH} -o ../${PKG}_${VERSION}.orig.tar.gz
 
 cd ${SCRIPT_DIR}
 # Backup .version file
-if [[ -e ${PKG}-${VERSION} ]]; then
+if [[ -e ${PKG}-${VERSION}/.version ]]; then
     cp -f ${PKG}-${VERSION}/.version ${SCRIPT_DIR}/.version
 fi
 
@@ -31,7 +31,7 @@ done < ${SCRIPT_DIR}/patches/series
 cat ${SCRIPT_DIR}/patches/*.cfg >> arch/arm64/configs/${DEFCONFIG_NAME}
 
 # Restore .version file
-if [[ -e ${SCRIPT_DIR}/${PKG}-${VERSION} ]]; then
+if [[ -e ${SCRIPT_DIR}/.version ]]; then
     mv ${SCRIPT_DIR}/.version ./.version
 fi
 
@@ -58,6 +58,8 @@ docker run --rm -i \
     debian-host-builder \
     bash ./build_kernel.sh
 
+# Fail here if the kernel build did not produce the packages
+ls ${SCRIPT_DIR}/linux-image-*.deb ${SCRIPT_DIR}/linux-headers-*.deb > /dev/null
 
 ######################
 # Build meta package #
