@@ -68,6 +68,13 @@ OVERLAY_DIR="${PROJ_ROOT}/overlay"
 : "${BRANCH:=$(git -C "${PROJ_ROOT}" rev-parse --abbrev-ref HEAD)}"
 SPARROW_HAWK_APT_URL="https://${REPO_OWNER}.github.io/sparrow-hawk-debian/${BRANCH}"
 SPARROW_HAWK_GPG_URL="https://${REPO_OWNER}.github.io/sparrow-hawk-debian/sparrow-hawk-repo.asc"
+# GFX package repository (rcar-gfx). It is published for trixie only.
+GFX_REPO_OWNER="${GFX_REPO_OWNER:-rcar-community}"
+GFX_APT_URL="https://${GFX_REPO_OWNER}.github.io/rcar-gfx/main"
+GFX_GPG_URL="https://${GFX_REPO_OWNER}.github.io/rcar-gfx/rcar-gfx-repo.asc"
+# Prefer the GFX packages over Debian ones (even newer ones), because the
+# patched Mesa/Xorg/Xwayland must not be replaced by a Debian update.
+GFX_APT_PIN="Package: *\\nPin: origin ${GFX_REPO_OWNER}.github.io\\nPin-Priority: 1001\\n"
 
 # Convert packages.base.txt -> whitespace-separated list (strip comments/blank lines)
 # mmdebstrap --include supports comma OR whitespace separated lists.  (manpage) 
@@ -139,6 +146,21 @@ CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
   curl -fsSL \"${SPARROW_HAWK_GPG_URL}\" -o /etc/apt/trusted.gpg.d/sparrow-hawk-repo.asc
   echo \"deb [arch=arm64 trusted=yes signed-by=/etc/apt/trusted.gpg.d/sparrow-hawk-repo.asc] ${SPARROW_HAWK_APT_URL} ${SUITE} main\" > /etc/apt/sources.list.d/sparrow-hawk.list
   apt-get update && apt-get install -y sparrow-hawk-bsp
+  if [ \"${SUITE}\" = trixie ]; then
+    curl -fsSL \"${GFX_GPG_URL}\" -o /etc/apt/trusted.gpg.d/rcar-gfx-repo.asc
+    echo \"deb [arch=arm64 trusted=yes signed-by=/etc/apt/trusted.gpg.d/rcar-gfx-repo.asc] ${GFX_APT_URL} ${SUITE} main\" > /etc/apt/sources.list.d/rcar-gfx.list
+    printf \"${GFX_APT_PIN}\" > /etc/apt/preferences.d/rcar-gfx
+    # The post_install.sh of roguekm-dkms writes the autoload config of the module
+    # into /usr/lib/modules-load.d, but nothing creates it in the rootfs.
+    mkdir -p /usr/lib/modules-load.d
+    # roguekm-dkms postinst runs dkms for \"uname -r\" (kernel of the build host),
+    # so report the kernel installed in the rootfs while installing it.
+    # apt resets PATH for maintainer scripts, so add /usr/local/bin by DPkg::Path.
+    printf \"#!/bin/sh\\nif [ \\\"\\\$1\\\" = -r ]; then ls /lib/modules | head -1; else exec /usr/bin/uname \\\"\\\$@\\\"; fi\\n\" > /usr/local/bin/uname
+    chmod +x /usr/local/bin/uname
+    apt-get update && apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx
+    rm -f /usr/local/bin/uname
+  fi
 '")
 
 # 6) apt cleanup

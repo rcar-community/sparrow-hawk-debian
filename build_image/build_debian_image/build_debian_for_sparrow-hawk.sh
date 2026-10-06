@@ -24,12 +24,21 @@ EXTRA_APT_REPO="\
 deb [${EXTRA_APT_COMMON_CONF}] https://${REPO_OWNER}.github.io/sparrow-hawk-debian/${BRANCH} _CODENAME_ main
 "
 GPG_KEY_URL="https://${REPO_OWNER}.github.io/sparrow-hawk-debian/sparrow-hawk-repo.asc"
+# GFX package repository (rcar-gfx). It is published for trixie only.
+GFX_REPO_OWNER=${GFX_REPO_OWNER:-rcar-community}
+GFX_APT_CONF="arch=arm64 trusted=yes signed-by=/etc/apt/trusted.gpg.d/rcar-gfx-repo.asc"
+GFX_APT_REPO="deb [${GFX_APT_CONF}] https://${GFX_REPO_OWNER}.github.io/rcar-gfx/main trixie main"
+GFX_GPG_KEY_URL="https://${GFX_REPO_OWNER}.github.io/rcar-gfx/rcar-gfx-repo.asc"
+# Prefer the GFX packages over Debian ones (even newer ones), because the
+# patched Mesa/Xorg/Xwayland must not be replaced by a Debian update.
+GFX_APT_PIN="Package: *\nPin: origin ${GFX_REPO_OWNER}.github.io\nPin-Priority: 1001\n"
 ARCH=arm64
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 CHROOT_DIR=${SCRIPT_DIR}/rootfs
 NET_DEV=end0
 USE_LOCAL_DEB="no"
 IMAGE_NAME_POSTFIX=""
+DESKTOP_PKG=""
 DEBIAN_VER=13
 
 DHCP_CONF="
@@ -86,7 +95,7 @@ while [[ $# -gt 0 ]]; do
             shift ;;
         --desktop)
             DESKTOP_ENV=$2
-            PKG_LIST+=" task-${DESKTOP_ENV}-desktop "
+            DESKTOP_PKG="task-${DESKTOP_ENV}-desktop"
             IMAGE_NAME_POSTFIX="-${DESKTOP_ENV}"
             shift ;;
         -l|--use-local-deb)
@@ -119,6 +128,33 @@ echo "Download gpg key for debian repository to Host PC"
 echo "Run mmdebstrap to make initial rootfs"
 rm -rf ${CHROOT_DIR}
 INSTALL_KERNEL_PACKAGE="apt-get install -y sparrow-hawk-bsp"
+GFX_HOOKS=()
+if [[ "${CODENAME}" == "trixie" ]]; then
+    # Install after sparrow-hawk-bsp, because roguekm-dkms needs the kernel headers.
+    # Its postinst runs dkms for "uname -r" (kernel of the build host), so
+    # report the kernel installed in the rootfs while installing it.
+    # apt resets PATH for maintainer scripts, so add /usr/local/bin by DPkg::Path.
+    # The post_install.sh of roguekm-dkms writes the autoload config of the module
+    # into /usr/lib/modules-load.d, but nothing creates it in the rootfs.
+    GFX_HOOKS=(
+        "--customize-hook=curl -fsSL ${GFX_GPG_KEY_URL} -o ${CHROOT_DIR}/etc/apt/trusted.gpg.d/rcar-gfx-repo.asc"
+        "--customize-hook=echo \"${GFX_APT_REPO}\" | tee ${CHROOT_DIR}/etc/apt/sources.list.d/rcar-gfx-repo.list > /dev/null"
+        "--customize-hook=printf '${GFX_APT_PIN}' > ${CHROOT_DIR}/etc/apt/preferences.d/rcar-gfx"
+        "--customize-hook=chroot ${CHROOT_DIR} apt-get update"
+        "--customize-hook=mkdir -p ${CHROOT_DIR}/usr/lib/modules-load.d"
+        "--customize-hook=printf '#!/bin/sh\nif [ \"\$1\" = \"-r\" ]; then ls /lib/modules | head -1; else exec /usr/bin/uname \"\$@\"; fi\n' > ${CHROOT_DIR}/usr/local/bin/uname && chmod +x ${CHROOT_DIR}/usr/local/bin/uname"
+        "--customize-hook=chroot ${CHROOT_DIR} apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx"
+        "--customize-hook=rm -f ${CHROOT_DIR}/usr/local/bin/uname"
+    )
+fi
+# Install the desktop after GFX packages, otherwise the Debian Xorg/Mesa get
+# installed first and apt refuses to downgrade them to the GFX ones.
+DESKTOP_HOOKS=()
+if [[ "${DESKTOP_PKG}" != "" ]]; then
+    DESKTOP_HOOKS=(
+        "--customize-hook=chroot ${CHROOT_DIR} apt-get install -y ${DESKTOP_PKG}"
+    )
+fi
 mmdebstrap --variant=$VARIANT --arch=$ARCH \
     --include="ca-certificates ${PKG_LIST}" $CODENAME ${CHROOT_DIR} \
     \
@@ -137,6 +173,8 @@ mmdebstrap --variant=$VARIANT --arch=$ARCH \
     --customize-hook="echo nameserver 8.8.8.8 >> ${CHROOT_DIR}/etc/resolv.conf" \
     --customize-hook="chroot ${CHROOT_DIR} apt-get update" \
     --customize-hook="chroot ${CHROOT_DIR} ${INSTALL_KERNEL_PACKAGE}" \
+    "${GFX_HOOKS[@]}" \
+    "${DESKTOP_HOOKS[@]}" \
     --customize-hook="chroot ${CHROOT_DIR} depmod -a \$(ls ${CHROOT_DIR}/lib/modules)" \
     \
     --customize-hook="chroot ${CHROOT_DIR} apt-get clean" \
