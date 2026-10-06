@@ -8,17 +8,23 @@ import subprocess
 from datetime import datetime
 
 # Usage:
-#   python3 scripts/04_update_repo_json.sh <image_xz_path> <repo_json_path> <image_url> [<icon_url>]
+#   python3 scripts/04_update_repo_json.py <repo_json_path> <icon_url> \
+#     <image_xz_path> <image_url> <variant> [<image_xz_path> <image_url> <variant> ...]
+#
+# <variant> is the name of the desktop environment (ex. xfce), or "" for the
+# headless image.
 #
 # Example:
-#   python3 scripts/04_update_repo_json.sh out/myos.img.xz out/repo.json \
-#     https://example.com/images/myos.img.xz \
-#     https://example.com/icons/myos.png
+#   python3 scripts/04_update_repo_json.py out/repo.json \
+#     https://example.com/icons/myos.png \
+#     out/myos.img.xz https://example.com/images/myos.img.xz "" \
+#     out/myos-xfce.img.xz https://example.com/images/myos-xfce.img.xz xfce
 
-xz_path = sys.argv[1]
-repo_path = sys.argv[2]
-image_url = sys.argv[3]
-icon_url = sys.argv[4] if len(sys.argv) >= 5 else "https://example.com/icons/myos.png"
+repo_path = sys.argv[1]
+icon_url = sys.argv[2]
+images = [sys.argv[i:i + 3] for i in range(3, len(sys.argv), 3)]
+if not images or any(len(i) != 3 for i in images):
+    sys.exit("Usage: <repo_json_path> <icon_url> (<image_xz_path> <image_url> <variant>)...")
 
 def sha256_file(path: str) -> str:
     h = hashlib.sha256()
@@ -44,22 +50,25 @@ def xz_decompress_to_temp_img(xz_file: str) -> str:
 
     return tmp_img
 
-# ---- Compressed download metadata (.img.xz) ----
-image_download_size = os.path.getsize(xz_path)
-image_download_sha256 = sha256_file(xz_path)
-
-# ---- Extracted image metadata (temporary .img) ----
-tmp_img = None
-try:
-    tmp_img = xz_decompress_to_temp_img(xz_path)
-    extract_size = os.path.getsize(tmp_img)
-    extract_sha256 = sha256_file(tmp_img)
-finally:
-    if tmp_img and os.path.exists(tmp_img):
-        try:
-            os.remove(tmp_img)
-        except Exception:
-            pass
+def image_metadata(xz_path: str) -> dict:
+    # Compressed download metadata (.img.xz)
+    meta = {
+        "image_download_size": os.path.getsize(xz_path),
+        "image_download_sha256": sha256_file(xz_path),
+    }
+    # Extracted image metadata (temporary .img)
+    tmp_img = None
+    try:
+        tmp_img = xz_decompress_to_temp_img(xz_path)
+        meta["extract_size"] = os.path.getsize(tmp_img)
+        meta["extract_sha256"] = sha256_file(tmp_img)
+    finally:
+        if tmp_img and os.path.exists(tmp_img):
+            try:
+                os.remove(tmp_img)
+            except Exception:
+                pass
+    return meta
 
 # ? release_date = script run date (local)
 release_date = datetime.now().date().isoformat()
@@ -86,30 +95,35 @@ imager_block = {
     ]
 }
 
-# ---- OS entry ----
-os_entry = {
-    "name": "SparrowHawk Debian based OS",
-    "description": "Debian based rootfs + cloud-init",
-    "icon": icon_url,
-    "url": image_url,
-    "release_date": release_date,
-    "init_format": "cloudinit",
+# ---- OS entries ----
+os_list = []
+for xz_path, image_url, variant in images:
+    meta = image_metadata(xz_path)
+    name = "SparrowHawk Debian based OS"
+    description = "Debian based rootfs + cloud-init"
+    if variant:
+        name += f" ({variant})"
+        description += f" + {variant} desktop"
+    os_list.append({
+        "name": name,
+        "description": description,
+        "icon": icon_url,
+        "url": image_url,
+        "release_date": release_date,
+        "init_format": "cloudinit",
 
-    # Pi4/Pi5 + no-filter
-    "devices": ["sh", "all"],
+        # Pi4/Pi5 + no-filter
+        "devices": ["sh", "all"],
 
-    # compressed file metadata
-    "image_download_size": image_download_size,
-    "image_download_sha256": image_download_sha256,
-
-    # extracted image metadata (for accurate writing progress/validation)
-    "extract_size": extract_size,
-    "extract_sha256": extract_sha256
-}
+        **meta
+    })
+    print(f"{name}: {xz_path}")
+    for k, v in meta.items():
+        print(f"  {k}: {v}")
 
 repo = {
     "imager": imager_block,
-    "os_list": [os_entry]
+    "os_list": os_list
 }
 
 os.makedirs(os.path.dirname(repo_path) or ".", exist_ok=True)
@@ -119,8 +133,3 @@ with open(repo_path, "w", encoding="utf-8") as f:
 
 print(f"Wrote: {repo_path}")
 print(f"release_date: {release_date}")
-print(f"image_download_size: {image_download_size}")
-print(f"image_download_sha256: {image_download_sha256}")
-print(f"extract_size: {extract_size}")
-print(f"extract_sha256: {extract_sha256}")
-
