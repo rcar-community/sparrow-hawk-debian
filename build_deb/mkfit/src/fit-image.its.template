@@ -153,6 +153,16 @@
 				algo = "crc32";
 			};
 		};
+		fdt-pcie-ep {
+			description = "Flattened Device Tree Overlay";
+			data = /incbin/("/usr/lib/linux-image-KERNEL_VERSION/renesas/r8a779g3-sparrow-hawk-pcie-ep.dtbo");
+			type = "flat_dt";
+			arch = "arm64";
+			compression = "none";
+			hash-1 {
+				algo = "crc32";
+			};
+		};
 		fdt-rpi-display-2-5in {
 			description = "Flattened Device Tree Overlay";
 			data = /incbin/("/usr/lib/linux-image-KERNEL_VERSION/renesas/r8a779g3-sparrow-hawk-rpi-display-2-5in.dtbo");
@@ -243,6 +253,9 @@
 		};
 		fan-pwm {
 			fdt = "fdt-fan-pwm";
+		};
+		pcie-ep {
+			fdt = "fdt-pcie-ep";
 		};
 		rpi-display-2 { // For backward compatibility
 			fdt = "fdt-rpi-display-2-7in";
