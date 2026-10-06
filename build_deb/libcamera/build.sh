@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 COMMIT=f4c3dee21770b9b8817c80265b9f81eda1833731
@@ -24,7 +24,7 @@ if [[ "${DEBIAN_VER}" == "" ]];then
 fi
 
 cd ${SCRIPT_DIR}
-git clone https://gitlab.freedesktop.org/camera/libcamera.git
+[[ -d libcamera ]] || git clone https://gitlab.freedesktop.org/camera/libcamera.git
 cd libcamera
 git fetch
 git archive ${COMMIT} -o ../${PKG}_${VERSION}.orig.tar.gz

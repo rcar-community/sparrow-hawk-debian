@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 COMMIT=761a765901ab9e009f6503904276c62fcf5cbb9b
@@ -24,7 +24,7 @@ if [[ "${DEBIAN_VER}" == "" ]];then
 fi
 
 cd ${SCRIPT_DIR}
-git clone https://github.com/renesas-rcar/qos_lib
+[[ -d qos_lib ]] || git clone https://github.com/renesas-rcar/qos_lib
 cd qos_lib
 git fetch
 git archive ${COMMIT} -o ../${PKG}_${VERSION}.orig.tar.gz
