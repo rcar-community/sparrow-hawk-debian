@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: trixie
+Date: Tue, 30 Jun 2026 09:14:36 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ 8dfd7500034e26a9211c91946eb3a690 10431 main/binary-arm64/Packages
+ 96e22ad7a7fc79cbeb56154f98f12b60 3121 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ a81047b232e00c58320908aa7895f2e5 8306 main/binary-amd64/Packages
+ 1eafe4562286be1192eed3ee8a96ea2c 2478 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ b08426ccd76ccc3556da8e510108424ad4c47e9f 10431 main/binary-arm64/Packages
+ 2168dacb2cdca008066d9fdc58730d1be1f320eb 3121 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ f2932e0118ee81d302dc138d9d9be6614b9b563f 8306 main/binary-amd64/Packages
+ dacc7fd2f20356cae4113ee27aee5e28ca4c2fb4 2478 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ 360a04a4493217962baed25aae67f97adcecee8946d632005bea68fd66752b0e 10431 main/binary-arm64/Packages
+ cee4c6837833a47e133331c0f094fe313d8ed210da3407956fc23a25f6d6d4eb 3121 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ c988b6efebb03cec3937e29550c90a246881e9ce75bb2af709d4305c14541468 8306 main/binary-amd64/Packages
+ c7a0e228ec466d53cd1603ac500c1545efc0f374b593b13ff0a5ecaa53fdcc3b 2478 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmpDiP0ACgkQv0NaWF1O
+GQRtawv/ax2HPCzvWVX0jSPwLAq4UPPCIxkxsBu3EGZXULbaUKFL0D9q/+WHV9df
+a7zsUHE/cFFmNrQJ29zQ1HljbbUmr05buj/l4T6cucSoSWpIFuZByN4zESeIcRjt
+n+Z/ln3oIVPmxq2JQED5GFl2GVz7yviv18Gn+7rTxR+Ia87+0LYp6HYA1+pmsfTT
+d0VPYBdEbup7C0C/9boucWjb+xTaKkzy0owUnV3tV0nn/9rCCBW1OWISl2ZpSmDW
+ZpUFsf/k18EVrCoQOqJlIcLDxgZDQefoSXuuF+NnVMb20B+QTKaH/VLpsueWnlKu
+uAfr3ruhWd+TcJHF8A0XtPaN7h0pClYpjPUJUeHysvVpEUBc1HRfPJ1n6pvTPM/E
+ORjPFvquqntWJVVmSXyc/1oMjgu0CSC7LOPiAGc0iYeXNzDQNcK6nNZXepxF6ySk
+nNmFm23/egJHlbAqlyVfrq3r6iVs+2GoLCDlMDRY2IkDnZlJ+JdzdzPz20radyGF
+HwI8td/2
+=I29i
+-----END PGP SIGNATURE-----
