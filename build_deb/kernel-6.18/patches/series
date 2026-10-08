@@ -25,3 +25,5 @@ uio/1001-arm64-dts-renesas-sparrow-hawk-Add-overlay-for-UIO-C.patch
 
 0004-arm64-dts-renesas-sparrow-hawk-Add-pcie-ep-dtbo.patch
 0005-media-renesas-vin-Add-VIDIOC_ENUM_FRAMESIZES-for-med.patch
+0006-media-rcar-isp-Add-NV12M-capture-format.patch
+0007-media-rcar-isp-Honour-requested-bytesperline-on-RAW-.patch
