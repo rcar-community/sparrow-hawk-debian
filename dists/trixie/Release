@@ -1,0 +1,25 @@
+Codename: trixie
+Date: Thu, 08 Oct 2026 10:23:17 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ 0301ef57bc3148a210b6539cf97be010 12150 main/binary-arm64/Packages
+ 8de8aa03ad00ed707a817129c58d63b6 3732 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ cf77743e927efe12b4df68b52c28cc5c 10025 main/binary-amd64/Packages
+ 96a09594f6a509667aa8df526ecc2fe2 3106 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ 2e51f7ced2142cd77d5f69861a91b400ac32f4fb 12150 main/binary-arm64/Packages
+ d7cec65fd15d334e5bedd05fadedda107eb94df7 3732 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ 8e5d7ca8fff59eb7c8f5c566a7ce149b8c79e101 10025 main/binary-amd64/Packages
+ fd7f108c7b536c057fea330c1572289611afd232 3106 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ 26c8356db30c0af6e2a9a05821a965f860c8ccce758e6fda9aae3aa83a166b19 12150 main/binary-arm64/Packages
+ 61b7afb43017736a70bb0df5d6b7d27200b52bb464a2c67b5cd02b22904da914 3732 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ c6be406e2e124586805fe10a0ec3e6eeaaa0ab105d0ab57ca83c24480f2712fb 10025 main/binary-amd64/Packages
+ 83c0d3bcd0a6bd5d01ba7cab0ae02bef1d444ec7a8060d8a66c052eca645d998 3106 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
