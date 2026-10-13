@@ -1,26 +1,62 @@
-From 21f6ef299e5cdb0e4ff5603de5ed24bb59bbcd51 Mon Sep 17 00:00:00 2001
+From dff7f871d4e93749b2443c54eb5d1f970cc072f6 Mon Sep 17 00:00:00 2001
 From: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
-Date: Thu, 27 Nov 2025 19:12:48 +0100
-Subject: [PATCH 14/15] ipa: rkisp1: imx708: Add LSC tables from VC4 tuning
- file
+Date: Tue, 1 Sep 2026 15:37:36 +0200
+Subject: [PATCH 35/38] ipa: rppx1: imx708: Add LSC tables from VC4 tuning file
 
 Use the just added script to convert VC4 LSC tables to a format
 compatible with RkISP1 and add them to the imx708 tuning file.
 
 Signed-off-by: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
----
- src/ipa/rkisp1/data/imx708.yaml | 2342 +++++++++++++++++++++++++++++++
- 1 file changed, 2342 insertions(+)
 
-diff --git a/src/ipa/rkisp1/data/imx708.yaml b/src/ipa/rkisp1/data/imx708.yaml
-index eae2a192..57bf2e7e 100644
---- a/src/ipa/rkisp1/data/imx708.yaml
-+++ b/src/ipa/rkisp1/data/imx708.yaml
-@@ -107,3 +107,2345 @@ algorithms:
+Upstream-Status: Pending
+
+---
+ src/ipa/rppx1/data/imx708.yaml | 2358 ++++++++++++++++++++++++++++++++
+ 1 file changed, 2358 insertions(+)
+
+diff --git a/src/ipa/rppx1/data/imx708.yaml b/src/ipa/rppx1/data/imx708.yaml
+index 20d4186c..568cc50e 100644
+--- a/src/ipa/rppx1/data/imx708.yaml
++++ b/src/ipa/rppx1/data/imx708.yaml
+@@ -123,4 +123,2362 @@ algorithms:
+                  0.01297, -0.63111, 1.61814
                 ]
    - GammaOutCorrection:
-       gamma: 2.2
 +  - LensShadingCorrection:
++      x-size:
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++      y-size:
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
++        - 0.0625
 +      sets:
 +      - b:
 +        - 1848
@@ -2344,24 +2380,4 @@ index eae2a192..57bf2e7e 100644
 +        - 1758
 +        - 1928
 +        - 2064
-+      x-size:
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      y-size:
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
-+      - 0.0625
--- 
-2.25.1
-
+ ...

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
-COMMIT=f4c3dee21770b9b8817c80265b9f81eda1833731
+COMMIT=0f0450158f4eaa37de633520822a9c4a1c25c5ea
 PKG=sparrow-hawk-libcamera
 VERSION=$(grep $PKG debian/changelog | sed -e 's/.*(//' -e 's/-.*).*//')
 DEBIAN_VER=""
