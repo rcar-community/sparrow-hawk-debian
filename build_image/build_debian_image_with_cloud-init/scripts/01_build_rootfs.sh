@@ -76,6 +76,9 @@ GFX_GPG_URL="https://${GFX_REPO_OWNER}.github.io/rcar-gfx/rcar-gfx-repo.asc"
 # Prefer the GFX packages over Debian ones (even newer ones), because the
 # patched Mesa/Xorg/Xwayland must not be replaced by a Debian update.
 GFX_APT_PIN="Package: *\\nPin: origin ${GFX_REPO_OWNER}.github.io\\nPin-Priority: 1001\\n"
+# Graphics applications for GPU tests: glmark2 (glmark2-x11),
+# vkcube (vulkan-tools) and clinfo.
+GFX_APPS="glmark2-x11 vulkan-tools clinfo"
 
 # Convert packages.base.txt -> whitespace-separated list (strip comments/blank lines)
 # mmdebstrap --include supports comma OR whitespace separated lists.  (manpage) 
@@ -159,7 +162,7 @@ CUSTOMIZE_HOOKS+=("--customize-hook=chroot \"\$1\" bash -lc 'set -euo pipefail
     # apt resets PATH for maintainer scripts, so add /usr/local/bin by DPkg::Path.
     printf \"#!/bin/sh\\nif [ \\\"\\\$1\\\" = -r ]; then ls /lib/modules | head -1; else exec /usr/bin/uname \\\"\\\$@\\\"; fi\\n\" > /usr/local/bin/uname
     chmod +x /usr/local/bin/uname
-    apt-get update && apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx
+    apt-get update && apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx ${GFX_APPS}
     rm -f /usr/local/bin/uname
   fi
 '")
