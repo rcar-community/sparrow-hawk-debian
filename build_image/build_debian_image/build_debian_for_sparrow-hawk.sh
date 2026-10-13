@@ -32,6 +32,9 @@ GFX_GPG_KEY_URL="https://${GFX_REPO_OWNER}.github.io/rcar-gfx/rcar-gfx-repo.asc"
 # Prefer the GFX packages over Debian ones (even newer ones), because the
 # patched Mesa/Xorg/Xwayland must not be replaced by a Debian update.
 GFX_APT_PIN="Package: *\nPin: origin ${GFX_REPO_OWNER}.github.io\nPin-Priority: 1001\n"
+# Graphics applications for GPU tests: glmark2 (glmark2-x11),
+# vkcube (vulkan-tools) and clinfo.
+GFX_APPS="glmark2-x11 vulkan-tools clinfo"
 ARCH=arm64
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 CHROOT_DIR=${SCRIPT_DIR}/rootfs
@@ -143,7 +146,7 @@ if [[ "${CODENAME}" == "trixie" ]]; then
         "--customize-hook=chroot ${CHROOT_DIR} apt-get update"
         "--customize-hook=mkdir -p ${CHROOT_DIR}/usr/lib/modules-load.d"
         "--customize-hook=printf '#!/bin/sh\nif [ \"\$1\" = \"-r\" ]; then ls /lib/modules | head -1; else exec /usr/bin/uname \"\$@\"; fi\n' > ${CHROOT_DIR}/usr/local/bin/uname && chmod +x ${CHROOT_DIR}/usr/local/bin/uname"
-        "--customize-hook=chroot ${CHROOT_DIR} apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx"
+        "--customize-hook=chroot ${CHROOT_DIR} apt-get -o DPkg::Path=/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin install -y sparrow-hawk-gfx ${GFX_APPS}"
         "--customize-hook=rm -f ${CHROOT_DIR}/usr/local/bin/uname"
     )
 fi
