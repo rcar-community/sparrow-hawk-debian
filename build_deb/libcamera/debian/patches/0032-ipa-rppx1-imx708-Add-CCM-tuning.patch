@@ -1,7 +1,7 @@
-From ef0a712366413c3665057b1499fb4634eda58155 Mon Sep 17 00:00:00 2001
+From 6b6e0552cdfbacc864e87bf007c718786f56da38 Mon Sep 17 00:00:00 2001
 From: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
-Date: Thu, 27 Nov 2025 18:57:00 +0100
-Subject: [PATCH 10/15] ipa: rkisp1: imx708: Add CCM tuning
+Date: Tue, 1 Sep 2026 15:31:06 +0200
+Subject: [PATCH 32/38] ipa: rppx1: imx708: Add CCM tuning
 
 Add CCM values for a fixed set of colour temperatures.
 
@@ -9,19 +9,21 @@ The values are identical from the ones available in the RaspberryPi
 tuning file for imx708.
 
 Signed-off-by: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
----
- src/ipa/rkisp1/data/imx708.yaml | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
 
-diff --git a/src/ipa/rkisp1/data/imx708.yaml b/src/ipa/rkisp1/data/imx708.yaml
-index df817c7e..c6db8b14 100644
---- a/src/ipa/rkisp1/data/imx708.yaml
-+++ b/src/ipa/rkisp1/data/imx708.yaml
-@@ -6,5 +6,37 @@ algorithms:
-   - Agc:
+Upstream-Status: Pending
+
+---
+ src/ipa/rppx1/data/imx708.yaml | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/src/ipa/rppx1/data/imx708.yaml b/src/ipa/rppx1/data/imx708.yaml
+index 3057df83..3fcd3c56 100644
+--- a/src/ipa/rppx1/data/imx708.yaml
++++ b/src/ipa/rppx1/data/imx708.yaml
+@@ -7,5 +7,36 @@ algorithms:
    - Awb:
    - BlackLevelCorrection:
-+  - Ccm:
+   - Ccm:
 +      ccms:
 +        - ct: 2964
 +          ccm: [
@@ -54,7 +56,4 @@ index df817c7e..c6db8b14 100644
 +                 0.01297, -0.63111, 1.61814
 +               ]
    - GammaOutCorrection:
-       gamma: 2.2
--- 
-2.25.1
-
+ ...

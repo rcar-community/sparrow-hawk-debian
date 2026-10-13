@@ -1,7 +1,7 @@
-From 1b3ddc60d33d34c27442a4c38a70c87c296c1da4 Mon Sep 17 00:00:00 2001
+From a43d427954a1dc0abbb6aad868d635127448e275 Mon Sep 17 00:00:00 2001
 From: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
-Date: Thu, 27 Nov 2025 19:05:28 +0100
-Subject: [PATCH 12/15] ipa: rkisp1: imx708: Populate AWB tuning parameters
+Date: Tue, 1 Sep 2026 15:34:25 +0200
+Subject: [PATCH 34/38] ipa: rppx1: imx708: Populate AWB tuning parameters
 
 Populate the AWB tuning paramters to use the "Bayesian" AWB algorithm
 version which offers better performances compared to the standard
@@ -14,17 +14,20 @@ Compared to the RPi tuning file format the gains are expressed as the
 inverse of the whitepoint values.
 
 Signed-off-by: Jacopo Mondi <jacopo.mondi@ideasonboard.com>
+
+Upstream-Status: Pending
+
 ---
- src/ipa/rkisp1/data/imx708.yaml | 40 +++++++++++++++++++++++++++++++++
+ src/ipa/rppx1/data/imx708.yaml | 40 ++++++++++++++++++++++++++++++++++
  1 file changed, 40 insertions(+)
 
-diff --git a/src/ipa/rkisp1/data/imx708.yaml b/src/ipa/rkisp1/data/imx708.yaml
-index eb97e1ce..eae2a192 100644
---- a/src/ipa/rkisp1/data/imx708.yaml
-+++ b/src/ipa/rkisp1/data/imx708.yaml
-@@ -32,6 +32,46 @@ algorithms:
-             yTarget: [0, 0.8, 1000, 0.5]
-       relativeLuminanceTarget: 0.5
+diff --git a/src/ipa/rppx1/data/imx708.yaml b/src/ipa/rppx1/data/imx708.yaml
+index dfa9bf52..20d4186c 100644
+--- a/src/ipa/rppx1/data/imx708.yaml
++++ b/src/ipa/rppx1/data/imx708.yaml
+@@ -49,6 +49,46 @@ algorithms:
+             qHi: 1.0
+             yTarget: [0, 0.8, 1000, 0.8]
    - Awb:
 +      algorithm: "bayes"
 +      AwbMode:
@@ -50,9 +53,9 @@ index eb97e1ce..eae2a192 100644
 +          lo: 6500
 +          hi: 8000
 +      priors:
-+        - lux: 0
-+          ct: [ 2000, 13000 ]
-+          probability: [ 1.0, 1.0 ]
++          - lux: 0
++            ct: [ 2000, 13000 ]
++            probability: [ 1.0, 1.0 ]
 +      colourGains:
 +        - ct: 2964
 +          gains: [1.342101731, 3.112356054]
@@ -69,6 +72,3 @@ index eb97e1ce..eae2a192 100644
    - BlackLevelCorrection:
    - Ccm:
        ccms:
--- 
-2.25.1
-
