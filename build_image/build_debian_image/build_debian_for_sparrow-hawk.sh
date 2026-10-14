@@ -35,6 +35,9 @@ GFX_APT_PIN="Package: *\nPin: origin ${GFX_REPO_OWNER}.github.io\nPin-Priority: 
 # Graphics applications for GPU tests: glmark2 (glmark2-x11),
 # vkcube (vulkan-tools) and clinfo.
 GFX_APPS="glmark2-x11 vulkan-tools clinfo"
+# GStreamer: CLI tools (gst-launch-1.0, gst-inspect-1.0) and the plugin sets.
+# gstreamer1.0-libcamera is provided by sparrow-hawk-libcamera, so not listed.
+GST_PKGS="gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav"
 ARCH=arm64
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
 CHROOT_DIR=${SCRIPT_DIR}/rootfs
@@ -150,6 +153,12 @@ if [[ "${CODENAME}" == "trixie" ]]; then
         "--customize-hook=rm -f ${CHROOT_DIR}/usr/local/bin/uname"
     )
 fi
+# Install GStreamer after sparrow-hawk-bsp and GFX packages, otherwise the
+# Debian Mesa gets installed first and sparrow-hawk-libcamera conflicts with
+# gstreamer1.0-libcamera.
+GST_HOOKS=(
+    "--customize-hook=chroot ${CHROOT_DIR} apt-get install -y ${GST_PKGS}"
+)
 # Install the desktop after GFX packages, otherwise the Debian Xorg/Mesa get
 # installed first and apt refuses to downgrade them to the GFX ones.
 DESKTOP_HOOKS=()
@@ -177,6 +186,7 @@ mmdebstrap --variant=$VARIANT --arch=$ARCH \
     --customize-hook="chroot ${CHROOT_DIR} apt-get update" \
     --customize-hook="chroot ${CHROOT_DIR} ${INSTALL_KERNEL_PACKAGE}" \
     "${GFX_HOOKS[@]}" \
+    "${GST_HOOKS[@]}" \
     "${DESKTOP_HOOKS[@]}" \
     --customize-hook="chroot ${CHROOT_DIR} depmod -a \$(ls ${CHROOT_DIR}/lib/modules)" \
     \
