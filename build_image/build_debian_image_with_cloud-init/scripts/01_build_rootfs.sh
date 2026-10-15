@@ -81,7 +81,7 @@ GFX_APT_PIN="Package: *\\nPin: origin ${GFX_REPO_OWNER}.github.io\\nPin-Priority
 GFX_APPS="glmark2-x11 vulkan-tools clinfo"
 # GStreamer: CLI tools (gst-launch-1.0, gst-inspect-1.0) and the plugin sets.
 # gstreamer1.0-libcamera is provided by sparrow-hawk-libcamera, so not listed.
-GST_PKGS="gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav"
+GST_PKGS="gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-x gstreamer1.0-gl gstreamer1.0-alsa"
 
 # Convert packages.base.txt -> whitespace-separated list (strip comments/blank lines)
 # mmdebstrap --include supports comma OR whitespace separated lists.  (manpage) 
