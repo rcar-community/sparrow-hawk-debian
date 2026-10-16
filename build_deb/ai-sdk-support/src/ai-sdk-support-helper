@@ -20,8 +20,16 @@ Commands:
       The library patterns/target versions are fixed in this script;
       bump the package version if a dependency's expected ABI changes.
 
+  user-setup [username]
+      Let a non-root user run AI SDK applications: allow realtime
+      priority (rtprio 99, needed for SCHED_FIFO threads in OSAL) and
+      create /tmp/tvm-rcar-osal-lock owned by that user on every boot
+      (needed by the TVM runtime). The user is <username>, else the
+      user who ran sudo (\$SUDO_USER). Only one user can use the TVM
+      lock file at a time; re-running with another user switches it.
+
   all
-      Run lib-symlink and unlock-root in sequence.
+      Run lib-symlink, unlock-root and user-setup in sequence.
 
   unlock-root
       Unlock the root account, set its password interactively (runs
@@ -124,6 +132,34 @@ cmd_unlock_root() {
 	passwd root
 }
 
+cmd_user_setup() {
+	user="${1:-${SUDO_USER:-}}"
+	if [ -z "${user}" ] || [ "${user}" = "root" ]; then
+		echo "error: cannot determine a non-root user; run '${PROG} user-setup <username>'" >&2
+		return 1
+	fi
+	if ! id -u "${user}" >/dev/null 2>&1; then
+		echo "error: user '${user}' does not exist" >&2
+		return 1
+	fi
+
+	echo "Setting up AI SDK environment for user: ${user}"
+
+	# SCHED_FIFO threads (r_osal_os_thread.c, r_osal_os_interrupt.c) need
+	# rtprio. Applied at PAM login (including SSH).
+	echo "${user} - rtprio 99" >/etc/security/limits.d/90-ai-sdk.conf
+
+	# The TVM runtime fchmod()s this file before initializing OSAL, which
+	# fails if root created it. Create it owned by the user on every boot.
+	echo "f /tmp/tvm-rcar-osal-lock 0222 ${user} ${user} -" >/etc/tmpfiles.d/ai-sdk-tvm-osal-lock.conf
+	systemd-tmpfiles --create /etc/tmpfiles.d/ai-sdk-tvm-osal-lock.conf
+	# 'f' does not change the owner of an already existing file
+	[ ! -e /tmp/tvm-rcar-osal-lock ] || chown "${user}:${user}" /tmp/tvm-rcar-osal-lock
+	ls -l /tmp/tvm-rcar-osal-lock
+
+	echo "Re-login (e.g. SSH) as ${user} to apply the rtprio limit; check with 'ulimit -r' (expect 99)."
+}
+
 check_uio() {
 	if ls /dev/uio* >/dev/null 2>&1; then
 		return 0
@@ -136,6 +172,7 @@ check_uio() {
 cmd_all() {
 	cmd_lib_symlink
 	cmd_unlock_root
+	cmd_user_setup
 }
 
 check_uio || true
@@ -150,6 +187,9 @@ lib-symlink)
 	;;
 unlock-root)
 	cmd_unlock_root "$@"
+	;;
+user-setup)
+	cmd_user_setup "$@"
 	;;
 all)
 	cmd_all "$@"
