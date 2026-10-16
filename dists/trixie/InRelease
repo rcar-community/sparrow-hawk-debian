@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: trixie
+Date: Fri, 16 Oct 2026 14:39:28 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ a126debaed727d057ace3dbbd791ec56 12240 main/binary-arm64/Packages
+ fc0be21fe091318e076c59544159338b 3777 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ 94581c8faa5fb72019bac48081e81e00 10115 main/binary-amd64/Packages
+ db2eca4e7a3f0c961c625d2c82ae40ac 3158 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ ed9754882e24e9deb79c9e02a1117e384e32a558 12240 main/binary-arm64/Packages
+ 5e3c1caf75372528fb8ec4c7df441cfb0beef582 3777 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ 95f7c09dab97c0f1c2ebf0c1c3533dd97f448a8e 10115 main/binary-amd64/Packages
+ 1f047cdbe809917ed2ca000fbac561bde7943565 3158 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ ead3a45a209f6a7941f3a1a4bdac393c9e02829eadbf0d11170fe69a5ae531ee 12240 main/binary-arm64/Packages
+ 59f0929e8d39e647c544bddf86a433f81f30ff2e5335adc9686205460b992771 3777 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ 2e2e53f1e2486d53e676ea707fc55e1981ba64c57b075fa876e0b3be44579841 10115 main/binary-amd64/Packages
+ 78c6b14b911a9c2113e5863cd4bd17e99bac2c4c8bfd4aa6ac7705bcfd5b4a27 3158 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmrSNyAACgkQv0NaWF1O
+GQRw1gwAyRFU7BxlxSjtkP24UdFpDnvwztdvUh+QUBX2BUSk6vkSwCJslzOvNkBT
+wfFOVEzAhZ9Fo6zRmzAyE9W7FVb7F7spc0LWGPApKmt4bfQvFU0j/T2ksdlsbk5r
+7CoHbp0pQVF8fog0oenCBBt+IST/1fvK1hWopJ0/vn5tz7Ja5Jk+hkv71hM0T92k
+NmvTcyzbAB2Pptci2ZdHVQP45bN73934dNcAlAxDO5aaxihK0iFXnIkyDhCmYMBC
+c84NJdjX4mmUmciFhGPqUqW69R8nPKxYGvgSs++M12GNvLmXTvBX5BRN66wTJ4Zt
+AJF5UWsPfEdkIoQwhXlzP8w1zNy7eQECRknI4uWBgDL6cGsY2arjBWRd7zRjFBYD
+BdIVDXxBWZtBfFZPM7pDZke16ykxx9kOiCai1HBAS90mRkVvWjnPwX7aNdeucI/x
+Ir2h/e78ev0UbDr8VDIYIWLE2D91VcS+NoDOjFtiPQVi6IexJM77GCPPBEUnLgIi
+wbV2Nyoe
+=fy55
+-----END PGP SIGNATURE-----
