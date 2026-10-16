@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: bookworm
+Date: Fri, 16 Oct 2026 14:39:27 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ 741f935f84a7fb8c753abce1e9d8a027 12240 main/binary-arm64/Packages
+ 01ca9fcca5525f8e22599b2afe1ad898 3781 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ ac0947325ee05b777e8b0261ccd10fdb 10115 main/binary-amd64/Packages
+ ae5ada08f172ff755e86e438494751f5 3160 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ 2076dd54c2fce162a8f1766d8ca58853e95f82d1 12240 main/binary-arm64/Packages
+ 6124efb08e41c9b3c0a363e121a15aa353c1706d 3781 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ cd2b81f1137a1eca1055cefeaa060518b291e065 10115 main/binary-amd64/Packages
+ b71b98da21366c9d27f131b817c0c04bb64a5a75 3160 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ 52082fb3e878dbdc37e8d82bb60fdbfdd30f01358c3f13d62cf33e07feac959b 12240 main/binary-arm64/Packages
+ bfd33f85737d05cbf0dc561a20da869d70dd23ee18831c9d0d2d397b4adbf342 3781 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ e514ee4bb542db6d151c66074c276abf435b939e857e7d019bc6eb1704801ffe 10115 main/binary-amd64/Packages
+ 9a1f5c09a88df29f8f4d8bfac28bfef552c68ef84ce7bdbe51c2dc465809459d 3160 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmrSNyAACgkQv0NaWF1O
+GQQWtAv/dKKfNU8+VcCLDBXHPSoVVwJibHJctlKcsohpqMU1bRmK46Xl+qS6MSdv
+s2EQWAC2t0717OO8/tlr8ZDX9erI2MGhR6OQIT5RQMWlWCo7WVkgTT2+yeaPq1t5
+CiHnqyfZznYhJ14XpoXfYNzn6cUBb10jm0xRXErua3GfSdgIU7KNoJS9qMdNlQsG
+TmW32cSSczX0F4qbRlHG8y8TE49xHfVsN+129x4pg+caUf+xxwExK3NH3dGp+41h
+P96b2UFCfufihtSdnR+ikg+CM3vwZRv8Y9YRQLV13i6JN4DPOBUk+SDTG6LyVOdA
+169MlslDq7aIpMDvzRygchQOyIsnCq9WTB8EXAeq6JLTjmCgy4JiLfSE6TvgaTKU
+/BfQdamQUDGWi79Xkqb4ITGQ0snYtSmuaNFHu2/QercU7D3+qZe+4givhcRnSVBi
+oIqpHygqLCNqOMsD8pPnPKWX43D00ryns2IHqZa83OyN4yFoXMcmdB5O5KjtPO0P
+PxAhISWl
+=VA6S
+-----END PGP SIGNATURE-----
