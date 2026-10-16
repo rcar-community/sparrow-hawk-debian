@@ -1,0 +1,25 @@
+Codename: bookworm
+Date: Fri, 16 Oct 2026 10:04:40 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ ef1e7b46c71623a41321a1a705e7ee4c 12150 main/binary-arm64/Packages
+ 70fc3eaa81241c090c4eb22ee4678e8f 3733 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ a77d24735c8582b1194bbca4cd739856 10025 main/binary-amd64/Packages
+ 957a342efd89c6b2f1257408cde66435 3105 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ 7ba7adbdfb0df63fe02f5cf29fe93f2d5600e1dc 12150 main/binary-arm64/Packages
+ d5e5dcb8d21eb8f0f346a7458d82d964b3898864 3733 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ 3637fa4c79a7d58314d5b06cd5ab6a35c57cc914 10025 main/binary-amd64/Packages
+ 1cbec8096055df748cfc4c458921eb8b4a05eab4 3105 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ 877763a45d39599ba6b4f4578aa72c755e04e95faf2d105a811bf4e7bac390ce 12150 main/binary-arm64/Packages
+ a4cbfc5f197a337c04b71888c571f43f828fe2b021b5ab27e037f099be5a7ffb 3733 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ a03cf93f9ff3e334747db1d136896c844094c551c39c36c1e62f0fb09bd0e4dd 10025 main/binary-amd64/Packages
+ 3dd7a7f119bf51275ac86d3498c7c147b3acc7805c73da5ba572248f6d2823e1 3105 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
