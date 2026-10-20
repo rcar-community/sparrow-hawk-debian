@@ -40,6 +40,7 @@ GFX_APPS="glmark2-x11 vulkan-tools clinfo"
 GST_PKGS="gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-x gstreamer1.0-gl gstreamer1.0-alsa"
 ARCH=arm64
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
+cd ${SCRIPT_DIR}
 CHROOT_DIR=${SCRIPT_DIR}/rootfs
 NET_DEV=end0
 USE_LOCAL_DEB="no"
