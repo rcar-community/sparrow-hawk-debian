@@ -69,6 +69,14 @@ There is no guide but dockerfiles may be helpful.
 ./build_image/build_debian_image/build_debian_for_sparrow-hawk.sh
 ```
 
+#### Output
+
+Both methods write the image to `build_image/build_debian_image/` regardless of the current directory:
+
+```
+build_image/build_debian_image/sparrow-hawk-debian-<version>-based-bsp[-<desktop>].img.gz
+```
+
 ## Repository Structure
 
 ```
