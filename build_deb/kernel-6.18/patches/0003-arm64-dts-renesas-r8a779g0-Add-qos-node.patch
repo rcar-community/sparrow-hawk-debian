@@ -5,6 +5,9 @@ Subject: [PATCH] arm64: dts: renesas: r8a779g0: Add qos node
 
 Signed-off-by: Kenichi Nagai <kenichi.nagai.ry@renesas.com>
 Signed-off-by: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+
+Upstream-Status: Inappropriate [no upstream]
+
 ---
  arch/arm64/boot/dts/renesas/r8a779g0.dtsi | 5 +++++
  1 file changed, 5 insertions(+)

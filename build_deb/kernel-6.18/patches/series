@@ -19,11 +19,13 @@ uio/0011-uio-uio_pdrv_genirq-Add-parameter-error-in-case-not-.patch
 uio/0012-uio-uio_pdrv_genirq-Hotfix-clock-and-power-control-f.patch
 uio/0013-Revert-uio-uio_pdrv_genirq-Add-parameter-error-in-ca.patch
 uio/0014-uio-uio_pdrv_genirq-Add-parameter-error-in-case-not-.patch
-uio/0015-WIP-Fix-build-error-on-kernel-6.12.patch
+uio/0015-Fix-build-error-on-kernel-6.12.patch
 uio/0016-include-uapi-linux-renesas_uioctl.h-Fix-SPDX-part.patch
-uio/1001-arm64-dts-renesas-sparrow-hawk-Add-overlay-for-UIO-C.patch
+uio/0017-arm64-dts-renesas-sparrow-hawk-Add-overlay-for-UIO-C.patch
 
 0004-arm64-dts-renesas-sparrow-hawk-Add-pcie-ep-dtbo.patch
 0005-media-renesas-vin-Add-VIDIOC_ENUM_FRAMESIZES-for-med.patch
-0006-media-rcar-isp-Add-NV12M-capture-format.patch
-0007-media-rcar-isp-Honour-requested-bytesperline-on-RAW-.patch
+0006-media-rcar-isp-ispcore-Honour-requested-bytesperline.patch
+0007-media-rcar-isp-ispcore-Update-image-data-flush-setti.patch
+0008-media-rcar-isp-ispcore-Look-at-number-of-planes-when.patch
+0009-media-rcar-isp-ispcore-Add-NV12M-support.patch

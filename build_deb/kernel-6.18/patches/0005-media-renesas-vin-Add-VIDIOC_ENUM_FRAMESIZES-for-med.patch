@@ -7,8 +7,8 @@ Subject: [PATCH] media: renesas: vin: Add VIDIOC_ENUM_FRAMESIZES for media
 libcamera enumerates the frame sizes of every pixel format a capture
 video device supports, but the VIN driver does not implement
 VIDIOC_ENUM_FRAMESIZES in the media controller mode. The ioctl fails
-with ENOTTY, the list of supported sizes is empty and no camera can be
-registered by pipeline handlers which use the VIN to capture raw frames.
+with ENOTTY and libcamera logs an error every time it starts, even if
+the pipeline handler falls back to built-in size limits.
 
 Report the size limits as a stepwise range. They are the same limits
 that rvin_format_align() applies to the format: the width is bounded
