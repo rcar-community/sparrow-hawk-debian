@@ -21,6 +21,7 @@ Description: Helper scripts for HostPC-built AI SDK applications (HyCo/Reaction)
  to create shared library ABI compatibility symlinks (e.g. for OpenCV
  or libcrypt), to unlock/configure the root account (including
  enabling password-based root SSH login), to set up a non-root user
- (realtime priority limit and TVM runtime lock file ownership), and to
- check for the uio devices those apps require. None of these actions
+ (realtime priority limit and TVM runtime lock file ownership) or
+ revert that setup, and to check for the uio devices those apps
+ require. None of these actions
  are performed automatically.

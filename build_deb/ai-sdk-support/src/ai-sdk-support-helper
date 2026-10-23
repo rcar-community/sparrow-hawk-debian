@@ -27,9 +27,18 @@ Commands:
       (needed by the TVM runtime). The user is <username>, else the
       user who ran sudo (\$SUDO_USER). Only one user can use the TVM
       lock file at a time; re-running with another user switches it.
+      The lock file is owned by that user, so root can no longer open
+      it (fs.protected_regular); do not use together with root runs.
+      Use user-reset to undo this and run applications as root again.
+
+  user-reset
+      Undo user-setup: remove the rtprio limit and the boot-time lock
+      file rule, and delete /tmp/tvm-rcar-osal-lock so that root can
+      create it again. Does nothing if user-setup was not run.
 
   all
-      Run lib-symlink, unlock-root and user-setup in sequence.
+      Run lib-symlink and unlock-root in sequence (user-setup is not
+      included; it is for non-root use and must be run explicitly).
 
   unlock-root
       Unlock the root account, set its password interactively (runs
@@ -160,6 +169,14 @@ cmd_user_setup() {
 	echo "Re-login (e.g. SSH) as ${user} to apply the rtprio limit; check with 'ulimit -r' (expect 99)."
 }
 
+cmd_user_reset() {
+	echo "Removing AI SDK non-root user setup"
+	rm -f /etc/security/limits.d/90-ai-sdk.conf
+	rm -f /etc/tmpfiles.d/ai-sdk-tvm-osal-lock.conf
+	rm -f /tmp/tvm-rcar-osal-lock
+	echo "Done. Re-login to drop the rtprio limit; the lock file is created by the application on next run."
+}
+
 check_uio() {
 	if ls /dev/uio* >/dev/null 2>&1; then
 		return 0
@@ -172,7 +189,6 @@ check_uio() {
 cmd_all() {
 	cmd_lib_symlink
 	cmd_unlock_root
-	cmd_user_setup
 }
 
 check_uio || true
@@ -190,6 +206,9 @@ unlock-root)
 	;;
 user-setup)
 	cmd_user_setup "$@"
+	;;
+user-reset)
+	cmd_user_reset "$@"
 	;;
 all)
 	cmd_all "$@"
