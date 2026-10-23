@@ -1,5 +1,5 @@
-sparrow-hawk-u-boot (2026.10-1) jammy; urgency=medium
+sparrow-hawk-u-boot (2026.10-2) jammy; urgency=medium
 
   * Initial release for Sparrow Hawk
 
- -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Tue, 07 Jul 2026 14:53:21 +0900
+ -- Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>  Fri, 23 Oct 2026 19:13:18 +0900
