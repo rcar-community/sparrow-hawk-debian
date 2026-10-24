@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: trixie
+Date: Sat, 24 Oct 2026 10:04:29 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ 992d41255a79d715885278a1a77e3bf2 12262 main/binary-arm64/Packages
+ 4ec08f6a00b547dce58eb74841f2847f 3797 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ d241dc6278464cdf3d3ae11fc9151ac2 10137 main/binary-amd64/Packages
+ fab742dfac55dc3282c60fb4847689b5 3173 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ dc1727655c24fdb7482bc05b669039000fc5f14b 12262 main/binary-arm64/Packages
+ 7a9e9c43db749e3a6cfcd55360a9789ad555919f 3797 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ 8a00cd6d5d01d8f992720b752155cfe9e4d2d733 10137 main/binary-amd64/Packages
+ 0d0675b867e35b155f84d4495fc3e6b6e729d0fc 3173 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ ec87e876baf8a67250e571beb0b068d2e1882a027874f3dc52428c1337fc441f 12262 main/binary-arm64/Packages
+ bc116bf126f19f405cb6f00aa823fdc7fa5c9077c68e8da851b5025fc0b78414 3797 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ 2b16c1a1418b02c3bceb8637fcec0b56541969ac116d9aa8a2b2f423fab48792 10137 main/binary-amd64/Packages
+ 79a7376f5b6cf159a384477152285bb97a37fa77b3a6929447986c15a12171f0 3173 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmrcgq0ACgkQv0NaWF1O
+GQROGAv8DnaKUOTFWfLuVTsywOKjkYL9f+M+XuU7mgpKpLhk8422OuB6CY+gtViZ
+iAej59/bXw2IoiqajjolxdrLS0EyEIxLkMuBXYoeBsgphjqpQ/I/Az4dSQMct2wK
+xCT5wxDiIlkEFtSiQixhnuMeHmkn/vZy7DaLVryl7b59R25IbPBrxtCoAQ4doHrf
+Kpe5zP7qiqXghbK4waVwjgPOheUP9jtmEbmSKnVzARUNlKY6buNPb6FlkQF8wwv5
+ldv+QM4UrrH7oqYOHHKo2dnpPjTOpUvPYmI+fumdH0R+2+lTVZFDvl7we3+4u7vv
+2L25thcAZxK69BLH7HtP7m6IoeP3xP7QaBBJaxAeVfbd0l1OG4eBCOxAikyVz8wD
+9qO/UlX4Iz1bkr/d8lg7qgWMaBp9enu8YJpxAE6H9qqbxwmJSPs5IJrS3Tpl3Vmm
+E2pv3h2Lj+CN7Fyr/ejRlwm22pbkNLH0pKlqHyhfFhEu2/N7r9CG/O3mwszGT/Ik
+m9l8GTfW
+=q9yW
+-----END PGP SIGNATURE-----
