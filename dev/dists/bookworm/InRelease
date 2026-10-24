@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: bookworm
+Date: Sat, 24 Oct 2026 10:04:28 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ c04318d8cbf2da053c4c6ff247ec1bda 12262 main/binary-arm64/Packages
+ 7a176f02466abc57237024b043ffdc88 3797 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ 7fd7991b4a057d6d64a0460ee16c6445 10137 main/binary-amd64/Packages
+ 11d8d3e651186d8e1d10f6cbfe40fd35 3175 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ a3511bd206463ad6247cd1e38fcf3684f53a25b9 12262 main/binary-arm64/Packages
+ 59c918cb598ecd11f8b8fae57beb167f51dbce4f 3797 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ e63d994db1223f7ee1db8df1f77969cc53973f24 10137 main/binary-amd64/Packages
+ 17582a509687ade7bcf09a124cbe6006d643e69c 3175 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ cc3e6998b033747d618ae71740c8859c5a1bf049dabdc9c0875448c44edf9b39 12262 main/binary-arm64/Packages
+ d9b581e66932534cc7de3fb5ca71f2685723d10add1c76e95d402732e97043e0 3797 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ 874af5fb33498b0fc5a4a1a4a7e9c808a38ec5a475d940faf0f320e5a1d39915 10137 main/binary-amd64/Packages
+ 12e0b4a9602b425ff0663d3dd12e913ecb98b4d1cc94ae99f70bdbe342b3c959 3175 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmrcgqwACgkQv0NaWF1O
+GQRvIgwAwvHU/Ohd/2fwbmULgT9uHcOg9AMD2Tfei9IUKsYtjNuDtbxDTUCheq2/
+HGPTIwcocTToWARf1EXDdxkh4pURSs7rYI0bnbVY7kavj4/awHpJoG9GB5cqAT0C
+bcMx9AW4rx7pSGmhce7NrPNTMcN7ZBrATuRQ+xlzjMumXGNZLYPf1/BajlyFlZMu
+KEbTsGS7iZ2ETAuIyYTiiEAK7LpjwfkQg37gu3JoEo/MI9aFDJP3f3iCm+wgweSM
+8tkuKN/ucf6m3y0aAejmX0P9c3J20xyjmol+X0zVpTSJqi1FwQqdWzPin7brEizh
+Nu4N8c13YlXqriHbSs64pgJG2oqkkkoG/1Tmvhz6sxlLzWQSl5Dxt6dBJ/RdSfIa
++5ppzggMulCf45xVXGnD+3tib4kt6QAfehwk+QwyiEHgbkODYoJgP9MGme/mezxr
+pkRYXBG/2geaT9ZMAUcrLAKCmkcstN7jaQxI3CpNZiZrMmumYIhcfWJqYfMs4Tgv
+n+ht6UBy
+=LEWY
+-----END PGP SIGNATURE-----
