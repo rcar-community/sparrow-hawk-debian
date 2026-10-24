@@ -1,0 +1,252 @@
+Package: linux-headers-6.18-arm64-renesas
+Version: 6.18.54-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Depends: linux-headers-6.18.54-arm64-renesas
+Provides: sparrow-hawk-kernel
+Priority: optional
+Section: misc
+Filename: pool/main/l/linux-headers-6.18-arm64-renesas/linux-headers-6.18-arm64-renesas_6.18.54-1_all.deb
+Size: 764
+SHA256: 3929e29626f2318521ffbf72b31b270beaf6d72550bec8a8c65dc9d01da8e184
+SHA1: b5f409cb6230f026982f5106fc69d0bf032fb8b8
+MD5sum: 4e6eb152ccc11ffd6887bd51674db3c0
+Description: Renesas kernel meta package for arm64
+
+Package: linux-image-6.18-arm64-renesas
+Version: 6.18.54-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Depends: linux-image-6.18.54-arm64-renesas
+Provides: sparrow-hawk-kernel
+Priority: optional
+Section: misc
+Filename: pool/main/l/linux-image-6.18-arm64-renesas/linux-image-6.18-arm64-renesas_6.18.54-1_all.deb
+Size: 764
+SHA256: e18d228fea9538fd6845a2a290a9405a5e06cae2ce320c6837babcfbbfd9d9f7
+SHA1: 32d85ebd0710196b2e7d4cd075d9f2caa04bd7f6
+MD5sum: e8b2c7dc5f25fed3c4c0bd5b3b80d8ab
+Description: Renesas kernel meta package for arm64
+
+Package: qos-dkms
+Version: 1.0.0-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 78
+Depends: dkms
+Provides: qos-modules
+Homepage: https://github.com/renesas-rcar/qos_drv
+Priority: optional
+Section: misc
+Filename: pool/main/q/qos-dkms/qos-dkms_1.0.0-1_all.deb
+Size: 13992
+SHA256: 78f8500c4aa00cc9d23417a704cdbb85da18ed80d1541adbc79d67122512d9d7
+SHA1: 68c6f50bd1a2ef6f43349592f373eb782ea9b71b
+MD5sum: 82955b6f4738f9377cc65d7cc8026e03
+Description: qos driver for Sparrow Hawk kernel
+
+Package: qos-lib
+Version: 1.0.0-1+deb12
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 152
+Homepage: https://github.com/renesas-rcar/qos_lib
+Priority: optional
+Section: misc
+Filename: pool/main/q/qos-lib/qos-lib_1.0.0-1+deb12_all.deb
+Size: 7396
+SHA256: 0349f39b309ffe27dc40120bc4d922be0dda6637ec4e89e7a90613f2869f63fb
+SHA1: d179bfc906e694a52930889b9255bfed3f1b8922
+MD5sum: 26cf56484a2a6a71d89035379a54ac85
+Description: qos-lib for Sparrow Hawk
+
+Package: sparrow-hawk-ai-sdk-support
+Version: 1.0.0-2
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 16
+Depends: libopencv-imgcodecs-dev, libopencv-videoio-dev, rpm2cpio, cpio
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-ai-sdk-support/sparrow-hawk-ai-sdk-support_1.0.0-2_all.deb
+Size: 4584
+SHA256: 84b7b272122d63ee0155f8b06de0530473090cda5409ca0ebedb2610ad9dd4af
+SHA1: ed647876d2a727a083750786ddd1a9a34c048b3d
+MD5sum: d46acb27cefd6e5d1356f5ebf242ded9
+Description: Helper scripts for HostPC-built AI SDK applications (HyCo/Reaction)
+ Sparrow Hawk Debian ships a newer OpenCV than the one HostPC-built AI
+ SDK applications (e.g. HyCo/Reaction) are typically linked against,
+ and some of those applications only run correctly as root.
+ .
+ This package pulls in OpenCV so it is available on the system, and
+ installs ai-sdk-support-helper, an operator-invoked helper script
+ to create shared library ABI compatibility symlinks (e.g. for OpenCV
+ or libcrypt), to unlock/configure the root account (including
+ enabling password-based root SSH login), to set up a non-root user
+ (realtime priority limit and TVM runtime lock file ownership) or
+ revert that setup, and to check for the uio devices those apps
+ require. None of these actions
+ are performed automatically.
+
+Package: sparrow-hawk-arm-trusted-firmware
+Version: 2.15.0-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 140
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-arm-trusted-firmware/sparrow-hawk-arm-trusted-firmware_2.15.0-1_all.deb
+Size: 18664
+SHA256: 53a669abda8dd69b8a034952d74715c79276f90e310e28c993cd11000463d275
+SHA1: fa1cc176d8720ae819a480b2ebd269aa5de8d7be
+MD5sum: 35d0237c1071cab3110fdbba71140d8f
+Description: ARM Trusted Firmware (TF-A) BL31 for Sparrow Hawk
+
+Package: sparrow-hawk-bsp
+Version: 1.0.0-9
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 7
+Depends: linux-image-6.18-arm64-renesas, linux-headers-6.18-arm64-renesas, sparrow-hawk-ai-sdk-support, sparrow-hawk-arm-trusted-firmware, sparrow-hawk-kernel-module-cmemdrv, sparrow-hawk-libcamera, sparrow-hawk-misc-config, sparrow-hawk-mkfit, sparrow-hawk-pcie-fw, sparrow-hawk-udev, sparrow-hawk-utils, sparrow-hawk-u-boot
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-bsp/sparrow-hawk-bsp_1.0.0-9_all.deb
+Size: 1296
+SHA256: 56175b72a6b9cb7f58dbd4889a3575518350f42ebb3fff0b34e2dfbd34df9e5b
+SHA1: fd4e692cf3e73ff16e2a954c387e8299c813c795
+MD5sum: c0e204550c1a1c02fd51dc7b96d14593
+Description: Meta package for Sparrow Hawk
+
+Package: sparrow-hawk-kernel-module-cmemdrv
+Source: cmemdrv-dkms
+Version: 1.0.0-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 53
+Depends: build-essential, dkms
+Provides: cmemdrv-modules
+Homepage: https://github.com/renesas-rcar/cmem
+Priority: optional
+Section: misc
+Filename: pool/main/c/cmemdrv-dkms/sparrow-hawk-kernel-module-cmemdrv_1.0.0-1_all.deb
+Size: 13220
+SHA256: 3f564e5668e29be51a78308d43260eb57aeac50db99dd31e2c81dd46eb385bd0
+SHA1: feeaa9336262efaa7082d4cd84f45f4cc2fd2059
+MD5sum: 730a1359da23b34cb15ba43dfcf02ec0
+Description: cmem driver for Sparrow Hawk kernel
+
+Package: sparrow-hawk-libcamera
+Version: 0.7.2-1+deb12
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 102791
+Depends: libdw1, libunwind8, libevent-dev, libdrm2, libtiff6
+Conflicts: gstreamer1.0-libcamera, libcamera-dev, libcamera-ipa, libcamera-tools, libcamera-v4l2, libcamera0.0.3, libcamera0.4, python3-libcamera
+Replaces: gstreamer1.0-libcamera, libcamera-dev, libcamera-ipa, libcamera-tools, libcamera-v4l2, libcamera0.0.3, libcamera0.4, python3-libcamera
+Provides: gstreamer1.0-libcamera, libcamera-dev, libcamera-ipa, libcamera-tools, libcamera-v4l2, libcamera0.0.3, libcamera0.4, python3-libcamera
+Homepage: https://git.libcamera.org/libcamera/libcamera.git
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-libcamera/sparrow-hawk-libcamera_0.7.2-1+deb12_all.deb
+Size: 23164444
+SHA256: 7e8212e9b14bd7107a1b8d5e0a0741ebef3fd497db90ee6f707da3aabaa176e4
+SHA1: 81758fcd98ec1d3ba2ea7b065184b34ebf37ceac
+MD5sum: 75c484ba10f2d6d9f0800cb7777f359c
+Description: libcamera for Sparrow Hawk kernel
+
+Package: sparrow-hawk-misc-config
+Version: 1.0.0-2
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 20
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-misc-config/sparrow-hawk-misc-config_1.0.0-2_all.deb
+Size: 1748
+SHA256: 32892b1da9979721e6bf1c8edd2d11496c0d39216e1dd7968cae319272b233fe
+SHA1: e1f2ab9e269f596a339a6a29884aae027a85f38d
+MD5sum: 92748223c1a63f8fc130aad6ef2def3d
+Description: udev rules
+
+Package: sparrow-hawk-mkfit
+Version: 1.0.0-21
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 28
+Depends: initramfs-tools, busybox-static, binutils, u-boot-tools, device-tree-compiler, sparrow-hawk-kernel, sparrow-hawk-arm-trusted-firmware, sparrow-hawk-pcie-fw
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-mkfit/sparrow-hawk-mkfit_1.0.0-21_all.deb
+Size: 4240
+SHA256: 8bd4ebcdb4c6697e28b2cb8b46b01024772bb609a8702c00bba49d9b41f8bf8e
+SHA1: ac42b8ae1cd8b44afa8bcc95a9fc614d4d1cec8c
+MD5sum: 79abc5f10d96927735e66989cf08eabf
+Description: Postinst script for generating fitImage automatically
+
+Package: sparrow-hawk-pcie-fw
+Version: 1.0.0-2
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 45
+Homepage: https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-pcie-fw/sparrow-hawk-pcie-fw_1.0.0-2_all.deb
+Size: 12940
+SHA256: 59f6f107039a4f383dbde3475e7f578fa7dbe8307acc87aab389744883849aa3
+SHA1: f53c5e8c4481ad74ebf2b6bbce0ea73bc230d9b5
+MD5sum: 0bc9fe42afc465f548b9b3466e4e5665
+Description: PCIe Controller firmware for Sparrow Hawk
+
+Package: sparrow-hawk-u-boot
+Version: 2026.10-2
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 2371
+Homepage: https://github.com/ARM-software/arm-trusted-firmware
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-u-boot/sparrow-hawk-u-boot_2026.10-2_all.deb
+Size: 351832
+SHA256: c13ba65d20b108c441ca8ab67d1481f9e21f092fe8fbd71ef5f8c988a5126219
+SHA1: 4097c2c5dc06960039abf3bd1cddc7fdcf0dbb11
+MD5sum: 74e8f9ff7183333f73707c426a112253
+Description: U-Boot for Sparrow Hawk
+
+Package: sparrow-hawk-udev
+Version: 1.0.0-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 15
+Depends: sparrow-hawk-mkfit
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-udev/sparrow-hawk-udev_1.0.0-1_all.deb
+Size: 1480
+SHA256: a0dbeaa5d488b5fc93a5f31e51b47ba8a7215be8180dc2b91d1086342fdf5942
+SHA1: 79aff0d6ac1b1fa82c68c2b2076d433a1b60908f
+MD5sum: 539c1012046b3b6a3a87e20b8d8d7a96
+Description: udev rules
+
+Package: sparrow-hawk-utils
+Version: 1.0.0-1
+Architecture: all
+Maintainer: Yuya Hamamachi <yuya.hamamachi.sx@renesas.com>
+Installed-Size: 12
+Depends: parted, e2fsprogs
+Homepage: https://github.com/rcar-community/meta-sparrow-hawk
+Priority: optional
+Section: misc
+Filename: pool/main/s/sparrow-hawk-utils/sparrow-hawk-utils_1.0.0-1_all.deb
+Size: 2304
+SHA256: 443620f20013ddc8fab4b0846f6f3ecf7fb94382020cf28969e501839e3e6688
+SHA1: 85d9bcca1fe65e53882f03d57be1b746cd915f71
+MD5sum: f3c7f4211d6461d63dae753580c08245
+Description: Utilities/Helper files for Sparrow Hawk
+
