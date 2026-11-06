@@ -1,0 +1,13 @@
+[Unit]
+Description=Enable RWDT hardware watchdog
+After=dbus.socket
+Wants=dbus.socket
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/rwdt-watchdog start
+ExecStop=/usr/sbin/rwdt-watchdog stop
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+# The watchdog resets the SoC on a heavy load or a hang, so users enable it
+# by 'systemctl enable --now rwdt-watchdog.service'.
+override_dh_installsystemd:
+	dh_installsystemd --no-enable --no-start --name=rwdt-watchdog rwdt-watchdog.service

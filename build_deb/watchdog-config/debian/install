@@ -1,0 +1,2 @@
+rwdt-watchdog ./usr/sbin/
+rwdt-watchdog.service ./lib/systemd/system/
