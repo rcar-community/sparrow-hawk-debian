@@ -22,6 +22,7 @@ Depends: ${misc:Depends},
     sparrow-hawk-pcie-fw,
     sparrow-hawk-udev,
     sparrow-hawk-utils,
+    sparrow-hawk-watchdog-config,
     sparrow-hawk-u-boot,
 Description: Meta package for Sparrow Hawk
 
