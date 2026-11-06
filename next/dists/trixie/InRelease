@@ -1,0 +1,42 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Codename: trixie
+Date: Thu, 15 Oct 2026 05:16:54 UTC
+Architectures: arm64 amd64
+Components: main
+MD5Sum:
+ a1b588795390d919db7cc01d86b34bee 12150 main/binary-arm64/Packages
+ e61d79615ae0589869127d98925c2833 3732 main/binary-arm64/Packages.gz
+ e89c28b1abf5bb6bbd1e9a3ebe9fe004 36 main/binary-arm64/Release
+ 307bc0032abeb8049da22824497aef59 10025 main/binary-amd64/Packages
+ 32e62468d4879378fa13f9edc84cb417 3104 main/binary-amd64/Packages.gz
+ 063287201b2354699acfe229a752201d 36 main/binary-amd64/Release
+SHA1:
+ e5fd8099db9ede247ae4faf6df28b576ee3de98c 12150 main/binary-arm64/Packages
+ 10f1480ba4b51f6db13118895ef88979bf87d78e 3732 main/binary-arm64/Packages.gz
+ 26519fde445e683e74519b33601c3901c8a45e3b 36 main/binary-arm64/Release
+ 23641c27900babad0d34a139b64d3060ae1bde42 10025 main/binary-amd64/Packages
+ 6eccd4b1dd73746fcb4896abc74615fe65a86b97 3104 main/binary-amd64/Packages.gz
+ f9082edea14092794f38390390e06abf8a922f7d 36 main/binary-amd64/Release
+SHA256:
+ 8a2a27c3b160f03c4184491f674c2929772b20611dd4b27bba9a122ca3487aab 12150 main/binary-arm64/Packages
+ e9830cb5bb21ee2d573a65c63555108bf87d774be0d92123aeaa76cef14fc64b 3732 main/binary-arm64/Packages.gz
+ 1d2a5a16922021225a06cc93f71f6e6008afdf7049fe22e22d7e98be73c59edf 36 main/binary-arm64/Release
+ 7953218d58270745d7dd4a8a98129ab6e9743f6990a08d1805219045c52950d9 10025 main/binary-amd64/Packages
+ 77e0247858d12c4beba690cc78dae0ccdca9615be10496ccc721726a00a9d41f 3104 main/binary-amd64/Packages.gz
+ f4aafa353a338baedf9e98523c13d7ffeda979ec3cf745f9fad977dd770595c8 36 main/binary-amd64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEECbeB2gTo6eNBunTYv0NaWF1OGQQFAmrQYcYACgkQv0NaWF1O
+GQQrjgv9GaJTfXUciLLeLE770A089vSKtSuJ1qDecVqdyQwYqToHvZ2jMGdrbWOv
+hYMkAUmh8NQCpqVCss4QUN8uP3fK00Fsuu84sZ5HxUzz2YkIOQlmfjdOu/oB0UXv
+Ym9ZQiHxDcJjaV8/Qxa55tLw4xYTVmjzEr2sP8Ul7aq5uoHjpPdUV3FugqRB0CGS
+mqa1MmbBo1RkpSXoodXI1147nVF76mJyRvrfF8LgEVe5JWrZtTI1tiQ8abr9kb3Q
+cT6wNd7wuVjVIG+nVwhQrDfQD4kdRSdx62rXH2td+7cL1O0LUn2sL+Qg69/llAWn
+7GJPItPxXEMfCUbOwvPhSDwEJmK7AwfmZnTSj3Q5IYT0qtWw++//yVZE6XnysguM
+PG/haepZQNqg5H1OKoq8kcgjEZCBbrFNK26bYCPZvk5SS/r9G7qNNo9pG1XvNcDu
+i4qH9k4MbfnifvD7tgBtg8zZd9VuZxJP2xIU8UHj+nSyqACPzkFNM3/Nkr0GUbbe
+6pVE6ww+
+=R1BH
+-----END PGP SIGNATURE-----
