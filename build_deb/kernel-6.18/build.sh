@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 SCRIPT_DIR=$(cd `dirname $0` && pwd)
-RAW_VERSION=${1:-6.18.54-2026-09-28}
+RAW_VERSION=${1:-6.18.64-2026-11-18}
 BRANCH=renesas-lts/v${RAW_VERSION}-sparrow-hawk
 VERSION=$(echo $RAW_VERSION | cut -d'-' -f1)
 PKG=sparrow-hawk-kernel-6.18
