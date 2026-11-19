@@ -8,7 +8,8 @@ KERNEL_IMAGE_PATH=$2
 
 # Get kernel version if this script doens't call from kernel postinst
 if [[ -z $KERNEL_VERSION ]];then
-    KERNEL_VERSION=$(ls /boot/vmlinuz* | cut -d'-' -f2-4)
+    # Multiple kernels may be installed, so use the newest one
+    KERNEL_VERSION=$(ls /boot/vmlinuz-* | sed -e 's|^/boot/vmlinuz-||' | sort -V | tail -n 1)
 fi
 BUSYBOX_BIN_PATH=$(which busybox)
 
