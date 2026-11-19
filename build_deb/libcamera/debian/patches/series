@@ -36,3 +36,4 @@
 0036-ipa-rppx1-Add-tuning-file-for-imx219.patch
 0037-ipa-rppx1-imx219-Add-basic-AGC-AWB-CCM-tuning.patch
 0038-ipa-rppx1-imx219-Add-LSC-tuning.patch
+0039-ipa-camera_sensor_helper-Add-black-level-for-imx477.patch
