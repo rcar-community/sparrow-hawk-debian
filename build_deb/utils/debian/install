@@ -1,3 +1,4 @@
 expand-rootfs.sh ./usr/bin/
 toggle_gpio_GP2_12.py ./usr/bin/example-apps/
 
+watch_gpio_GP1_06.py ./usr/bin/example-apps/
