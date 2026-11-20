@@ -1,0 +1,9 @@
+Codename: bookworm
+Components: main
+Architectures: arm64 amd64
+SignWith: yes
+
+Codename: trixie
+Components: main
+Architectures: arm64 amd64
+SignWith: yes
